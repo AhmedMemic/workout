@@ -11,7 +11,6 @@ export const en = {
   'progress.title': 'Progress',
   'me.title': 'Me',
 
-  'common.comingSoon': 'Coming soon',
   'common.back': 'Back',
   'common.all': 'All',
   'common.close': 'Close',

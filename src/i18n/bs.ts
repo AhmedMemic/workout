@@ -13,7 +13,6 @@ export const bs: Record<MessageKey, string> = {
   'progress.title': 'Napredak',
   'me.title': 'Ja',
 
-  'common.comingSoon': 'Uskoro',
   'common.back': 'Nazad',
   'common.all': 'Sve',
   'common.close': 'Zatvori',
