@@ -1,0 +1,22 @@
+.toggle {
+  display: flex;
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.option {
+  border: 0;
+  border-radius: var(--radius-pill);
+  min-height: 32px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.selected {
+  background: var(--border);
+  color: var(--text);
+}

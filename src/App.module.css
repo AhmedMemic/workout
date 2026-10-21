@@ -1,0 +1,10 @@
+.main {
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-4));
+}
+
+@media (min-width: 900px) {
+  .main {
+    padding-bottom: 0;
+    margin-left: 220px;
+  }
+}

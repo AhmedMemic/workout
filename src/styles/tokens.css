@@ -1,0 +1,33 @@
+/* Graphite & Lime — chosen theme (see Corner theme canvas) */
+:root {
+  --bg: #0e0f11;
+  --bg-deep: #08090a;
+  --surface: #181a1e;
+  --surface-2: #22252b;
+  --border: #2a2e35;
+  --ring: #3a3f47;
+  --text: #f2f3f5;
+  --muted: #9ba1aa;
+  --accent: #c8f25a;
+  --accent-hover: #e2ff9a;
+  --on-accent: #0e0f11;
+  --danger: #ff6b6b;
+
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+
+  --radius-sm: 14px;
+  --radius: 20px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --nav-height: 64px;
+  --tap: 44px;
+}
