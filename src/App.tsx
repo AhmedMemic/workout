@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect, type ReactNode } from 'react'
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
 import { Placeholder } from './features/Placeholder'
 import { TodayPage } from './features/today/TodayPage'
+import { PlayerPage } from './features/player/PlayerPage'
 import { ExercisesPage } from './features/exercises/ExercisesPage'
 import { ExerciseDetailPage } from './features/exercises/ExerciseDetailPage'
 import { ensureStartDate } from './db/settings'
@@ -18,7 +19,7 @@ export function App() {
 
   return (
     <HashRouter>
-      <main className={styles.main}>
+      <Shell>
         <Routes>
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayPage />} />
@@ -28,11 +29,22 @@ export function App() {
           <Route path="/progress" element={<Placeholder titleKey="progress.title" />} />
           <Route path="/me" element={<Placeholder titleKey="me.title" />} />
           <Route path="/challenge" element={<Placeholder titleKey="today.challenge" />} />
-          <Route path="/workout/:templateId" element={<Placeholder titleKey="today.start" />} />
+          <Route path="/workout/:templateId" element={<PlayerPage />} />
           <Route path="*" element={<Navigate to="/today" replace />} />
         </Routes>
-      </main>
-      <BottomNav />
+      </Shell>
     </HashRouter>
+  )
+}
+
+/** Bottom nav on every screen except the full-screen workout player. */
+function Shell({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
+  if (pathname.startsWith('/workout/')) return <>{children}</>
+  return (
+    <>
+      <main className={styles.main}>{children}</main>
+      <BottomNav />
+    </>
   )
 }
