@@ -51,6 +51,40 @@ export function dayOfMonth(s: ISODate): number {
   return Number(s.slice(8, 10))
 }
 
-export function formatDate(s: ISODate, lang: string, opts: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat(lang === 'bs' ? 'bs-BA' : 'en-GB', opts).format(parseISODate(s))
+const names = {
+  en: {
+    days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  },
+  bs: {
+    days: ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'],
+    months: ['januar', 'februar', 'mart', 'april', 'maj', 'juni', 'juli', 'august', 'septembar', 'oktobar', 'novembar', 'decembar'],
+  },
+}
+
+// Own names instead of Intl: not every browser ships Bosnian locale data.
+const pick = (lang: string) => (lang === 'bs' ? names.bs : names.en)
+
+/** "Wed 21 Oct" / "Sri, 21. okt" */
+export function formatDay(s: ISODate, lang: string): string {
+  const n = pick(lang)
+  const day = n.days[weekday(s)]
+  const month = n.months[Number(s.slice(5, 7)) - 1].slice(0, 3)
+  return lang === 'bs' ? `${day}, ${dayOfMonth(s)}. ${month}` : `${day} ${dayOfMonth(s)} ${month}`
+}
+
+/** Short weekday name, Monday = 0. */
+export function weekdayName(index: number, lang: string): string {
+  return pick(lang).days[index]
+}
+
+/** "October" / "Oktobar" */
+export function formatMonth(s: ISODate, lang: string): string {
+  const m = pick(lang).months[Number(s.slice(5, 7)) - 1]
+  return m[0].toUpperCase() + m.slice(1)
+}
+
+/** 7,000 / 7.000 — thousands separator per language. */
+export function formatNumber(n: number, lang: string): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'bs' ? '.' : ',')
 }

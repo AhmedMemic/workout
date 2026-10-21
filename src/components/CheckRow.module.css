@@ -1,0 +1,44 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.mark {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.done {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.partial {
+  border: 2px solid var(--accent);
+}
+
+.empty {
+  border: 2px solid var(--ring);
+}
+
+.label {
+  flex: 1;
+  font-size: 15px;
+}
+
+.value {
+  font-size: 14px;
+  color: var(--muted);
+}
