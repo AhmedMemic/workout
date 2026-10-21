@@ -1,0 +1,106 @@
+.weekNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weekLabel {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.navButton {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  border: 0;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.day {
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.isToday {
+  border-color: var(--accent);
+}
+
+.dayHead {
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+.date {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dayName {
+  font-weight: 600;
+}
+
+.statusDone {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dayHead > span:last-child {
+  font-size: 13px;
+}
+
+.dayBody {
+  padding: 0 var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.preview {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 14px;
+}
+
+.preview li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.slot {
+  width: 24px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.previewName {
+  flex: 1;
+}

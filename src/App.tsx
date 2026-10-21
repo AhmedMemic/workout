@@ -1,10 +1,12 @@
 import { useEffect, type ReactNode } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
-import { Placeholder } from './features/Placeholder'
 import { TodayPage } from './features/today/TodayPage'
 import { PlayerPage } from './features/player/PlayerPage'
 import { ChallengePage } from './features/challenge/ChallengePage'
+import { PlanPage } from './features/plan/PlanPage'
+import { ProgressPage } from './features/progress/ProgressPage'
+import { MePage } from './features/me/MePage'
 import { ExercisesPage } from './features/exercises/ExercisesPage'
 import { ExerciseDetailPage } from './features/exercises/ExerciseDetailPage'
 import { ensureStartDate } from './db/settings'
@@ -24,11 +26,11 @@ export function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayPage />} />
-          <Route path="/plan" element={<Placeholder titleKey="plan.title" />} />
+          <Route path="/plan" element={<PlanPage />} />
           <Route path="/exercises" element={<ExercisesPage />} />
           <Route path="/exercises/:id" element={<ExerciseDetailPage />} />
-          <Route path="/progress" element={<Placeholder titleKey="progress.title" />} />
-          <Route path="/me" element={<Placeholder titleKey="me.title" />} />
+          <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/me" element={<MePage />} />
           <Route path="/challenge" element={<ChallengePage />} />
           <Route path="/workout/:templateId" element={<PlayerPage />} />
           <Route path="*" element={<Navigate to="/today" replace />} />
