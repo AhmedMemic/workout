@@ -7,7 +7,7 @@ import { useT } from '../../i18n/I18nProvider'
 import { habits, swaps } from '../../data/habits'
 import type { Challenge } from '../../db/db'
 import { toggleChallengeTask, toggleFood, updateDaily } from '../../db/queries'
-import { daysInMonth, dayOfMonth, monthKey, type ISODate } from '../../logic/dates'
+import { daysInMonth, dayOfMonth, formatDay, monthKey, type ISODate } from '../../logic/dates'
 import { targetForDay } from '../../logic/challenge'
 import type { TaskUnit } from '../../data/challenges'
 import type { MessageKey } from '../../i18n/en'
@@ -127,17 +127,24 @@ const unitKey: Record<TaskUnit, MessageKey | null> = {
   check: null,
 }
 
-export function ChallengeSheet({ open, onClose, date, challenge, done }: BaseProps & { challenge: Challenge; done: string[] }) {
-  const { t, l } = useT()
+export function ChallengeSheet({
+  open,
+  onClose,
+  date,
+  challenge,
+  done,
+  showCalendarLink = true,
+}: BaseProps & { challenge: Challenge; done: string[]; showCalendarLink?: boolean }) {
+  const { t, l, lang } = useT()
   const days = daysInMonth(monthKey(date))
   const day = dayOfMonth(date)
   return (
     <Sheet open={open} onClose={onClose} title={t('today.challenge')}>
-      <div className="muted">{t('today.dayOf', { d: day, n: days })}</div>
+      <div className="muted">{formatDay(date, lang)} · {t('today.dayOf', { d: day, n: days })}</div>
       <div className={styles.list}>
         {challenge.tasks.map((task) => {
           const key = unitKey[task.unit]
-          const value = key ? `${targetForDay(task, day, days)} ${t(key)}` : undefined
+          const value = key ? `${targetForDay(task, day, days, challenge.startDay)} ${t(key)}` : undefined
           return (
             <CheckRow
               key={task.id}
@@ -150,9 +157,11 @@ export function ChallengeSheet({ open, onClose, date, challenge, done }: BasePro
         })}
       </div>
       <div className="muted">{t('sheet.splitOk')}</div>
-      <Link to="/challenge" className={buttonClass('secondary', true)}>
-        {t('sheet.openChallenge')}
-      </Link>
+      {showCalendarLink && (
+        <Link to="/challenge" className={buttonClass('secondary', true)}>
+          {t('sheet.openChallenge')}
+        </Link>
+      )}
     </Sheet>
   )
 }

@@ -4,6 +4,7 @@ import { BottomNav } from './components/BottomNav'
 import { Placeholder } from './features/Placeholder'
 import { TodayPage } from './features/today/TodayPage'
 import { PlayerPage } from './features/player/PlayerPage'
+import { ChallengePage } from './features/challenge/ChallengePage'
 import { ExercisesPage } from './features/exercises/ExercisesPage'
 import { ExerciseDetailPage } from './features/exercises/ExerciseDetailPage'
 import { ensureStartDate } from './db/settings'
@@ -28,7 +29,7 @@ export function App() {
           <Route path="/exercises/:id" element={<ExerciseDetailPage />} />
           <Route path="/progress" element={<Placeholder titleKey="progress.title" />} />
           <Route path="/me" element={<Placeholder titleKey="me.title" />} />
-          <Route path="/challenge" element={<Placeholder titleKey="today.challenge" />} />
+          <Route path="/challenge" element={<ChallengePage />} />
           <Route path="/workout/:templateId" element={<PlayerPage />} />
           <Route path="*" element={<Navigate to="/today" replace />} />
         </Routes>

@@ -96,6 +96,11 @@ describe('challenge', () => {
     expect(targetForDay(plank, 15, 30) % 5).toBe(0)
   })
 
+  it('ramps from the start day when the challenge begins mid-month', () => {
+    expect(targetForDay(plank, 21, 31, 21)).toBe(30)
+    expect(targetForDay(plank, 31, 31, 21)).toBe(60)
+  })
+
   it('a day is complete when every task is done', () => {
     expect(isDayComplete(starterChallenge.tasks, ['pushups', 'plank'])).toBe(false)
     expect(isDayComplete(starterChallenge.tasks, ['pushups', 'plank', 'situps'])).toBe(true)

@@ -45,6 +45,8 @@ export interface Challenge {
   month: string
   ideaId: string
   tasks: ChallengeTask[]
+  /** Day of the month the challenge began (ramps and day counts start here). */
+  startDay?: number
 }
 
 export interface ChallengeDay {

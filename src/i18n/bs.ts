@@ -98,6 +98,17 @@ export const bs: Record<MessageKey, string> = {
   'player.backToday': 'Nazad na Danas',
   'player.lastSet': 'Zadnje: {n}',
 
+  'challenge.daysDone': 'Urađeno {a} od {b} dana',
+  'challenge.tasks': 'Dnevni zadaci · danas',
+  'challenge.change': 'Promijeni izazov',
+  'challenge.pick': 'Izaberi izazov za {month}',
+  'challenge.changeWarn': 'Već označeni dani ostaju sačuvani, ali možda neće odgovarati novim zadacima.',
+  'challenge.prev': 'Prethodni mjesec',
+  'challenge.next': 'Sljedeći mjesec',
+  'challenge.none': 'Nema izazova ovog mjeseca.',
+  'challenge.result': 'Rezultat mjeseca',
+  'challenge.best': 'Najduži niz: {n} dana',
+
   'unit.kg': 'kg',
   'unit.reps': 'ponavljanja',
   'unit.seconds': 's',

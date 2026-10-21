@@ -96,6 +96,17 @@ export const en = {
   'player.backToday': 'Back to Today',
   'player.lastSet': 'Last: {n}',
 
+  'challenge.daysDone': '{a} of {b} days done',
+  'challenge.tasks': 'Daily tasks · today',
+  'challenge.change': 'Change challenge',
+  'challenge.pick': 'Pick a challenge for {month}',
+  'challenge.changeWarn': 'Ticks already made this month stay saved but may not match the new tasks.',
+  'challenge.prev': 'Previous month',
+  'challenge.next': 'Next month',
+  'challenge.none': 'No challenge this month.',
+  'challenge.result': 'Month result',
+  'challenge.best': 'Best run: {n} days',
+
   'unit.kg': 'kg',
   'unit.reps': 'reps',
   'unit.seconds': 's',

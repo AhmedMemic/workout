@@ -3,7 +3,7 @@ import { db, type ChallengeDay, type DailyLog } from './db'
 import { challengeIdeas, starterChallenge } from '../data/challenges'
 import type { TemplateId } from '../data/templates'
 import type { ChainId } from '../data/types'
-import { addDays, monthKey, type ISODate } from '../logic/dates'
+import { addDays, dayOfMonth, monthKey, today, type ISODate } from '../logic/dates'
 import { isDayComplete } from '../logic/challenge'
 import type { Levels } from '../logic/progression'
 
@@ -63,13 +63,15 @@ export async function setLevel(chain: ChainId, step: number): Promise<void> {
 /** Creates this month's challenge (the starter, or a chosen idea) if it doesn't exist yet. */
 export async function ensureChallenge(month: string, ideaId = starterChallenge.id): Promise<void> {
   if (await db.challenges.get(month)) return
-  const idea = challengeIdeas.find((c) => c.id === ideaId) ?? starterChallenge
-  await db.challenges.put({ month, ideaId: idea.id, tasks: idea.tasks })
+  await replaceChallenge(month, ideaId)
 }
 
+/** Sets the month's challenge. In the current month it starts today; otherwise on day 1. */
 export async function replaceChallenge(month: string, ideaId: string): Promise<void> {
   const idea = challengeIdeas.find((c) => c.id === ideaId) ?? starterChallenge
-  await db.challenges.put({ month, ideaId: idea.id, tasks: idea.tasks })
+  const now = today()
+  const startDay = monthKey(now) === month ? dayOfMonth(now) : 1
+  await db.challenges.put({ month, ideaId: idea.id, tasks: idea.tasks, startDay })
 }
 
 export function useChallenge(month: string) {
