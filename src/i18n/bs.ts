@@ -14,5 +14,19 @@ export const bs: Record<MessageKey, string> = {
   'me.title': 'Ja',
 
   'common.comingSoon': 'Uskoro',
+  'common.back': 'Nazad',
+  'common.all': 'Sve',
   'lang.label': 'Jezik',
+
+  'exercises.search': 'Pretraži vježbe',
+  'exercises.count': '{n} vježbi',
+  'exercises.empty': 'Nema vježbi za ovu pretragu.',
+  'exercise.steps': 'Kako se radi',
+  'exercise.muscles': 'Mišići',
+  'exercise.equipment': 'Oprema',
+  'exercise.ladder': 'Progresija: {chain}',
+  'exercise.step': 'Korak {n}',
+  'exercise.youtube': 'Pogledaj kako se radi na YouTubeu',
+  'exercise.perSide': 'Po strani',
+  'exercise.timed': 'Na vrijeme',
 }
