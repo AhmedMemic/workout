@@ -83,3 +83,161 @@
   background: var(--bg);
   text-align: right;
 }
+
+.dateInput {
+  width: 160px !important;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.goal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--surface-2);
+}
+
+.goalTop {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.goalName {
+  flex: 1;
+  font-weight: 600;
+}
+
+.goalValues {
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.goalMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.reached {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.remove {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  padding: 0 4px;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.trendRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--surface-2);
+  font-size: 14px;
+}
+
+.trendName {
+  flex: 1;
+  min-width: 0;
+}
+
+.trendValue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-width: 74px;
+}
+
+.better {
+  color: var(--accent);
+}
+
+.badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-3);
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  font-size: 12px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  padding: 0;
+}
+
+.medal {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  border: 2px dashed var(--ring);
+  color: var(--muted);
+}
+
+.earned .medal {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.badgeName {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.locked .badgeName {
+  color: var(--muted);
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  padding: var(--space-2) 0;
+}
+
+.badgeHow {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}

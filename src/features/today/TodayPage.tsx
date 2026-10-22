@@ -22,6 +22,7 @@ import { programPosition, sessionOptionsFor } from '../../logic/schedule'
 import { currentStreak } from '../../logic/streak'
 import { isDayComplete } from '../../logic/challenge'
 import { SessionCard } from './SessionCard'
+import { Highlights } from './Highlights'
 import { ChallengeSheet, DeskResetSheet, FoodSheet, NumberSheet } from './sheets'
 import styles from './Today.module.css'
 
@@ -79,6 +80,8 @@ export function TodayPage() {
           {t('today.resume')} · {templates[activeSession.templateId].name[lang]}
         </Link>
       )}
+
+      <Highlights date={date} settings={settings} />
 
       <SessionCard options={options} makeUp={makeUp} done={doneByDate.get(date) ?? []} />
 

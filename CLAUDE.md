@@ -64,6 +64,9 @@ src/
 - **Equipment:** 2×5 kg and 1×7 kg dumbbells, a stability ball, grip tools, a pedal resistance band, chair, wall, doorframe. No mat and no usable table, so no table exercises. A pull-up bar is optional.
 - **Player:** timed work has a get-ready countdown (`readySec` setting, skipped right after a rest) and stops at zero with a beep. Voice cues use the Web Speech API (`say()` in `hooks/device.ts`), falling back to a Croatian or Serbian voice for Bosnian.
 - **Apartment:** exercises must be low-noise, so no jumping.
+- **Goals** (`goals` table, schema v2) track weight (7-day average) or a test metric, from a start value to a target; a goal is stamped `reachedAt` once and stays reached.
+- **Re-tests:** baseline in the first 4-week window from `startDate`, then one per window (`logic/retest.ts`); Today shows a reminder until a test is logged or skipped.
+- **Milestones** are computed from data, never stored (`logic/badges.ts` + `logic/stats.ts`); `seenBadges` in settings only tracks which ones Today has celebrated.
 - **Food:** habits are tracked, but there is no calorie or diet tracking, because meals are shared with family.
 
 ## Deploy

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Page } from '../../components/Page'
 import { Sheet } from '../../components/Sheet'
 import { Icon } from '../../components/Icon'
@@ -10,19 +11,24 @@ import { daysInMonth, formatMonth, monthKey, today as todayISO, weekday, weekday
 import { isDayComplete, targetForDay } from '../../logic/challenge'
 import { bestStreak } from '../../logic/streak'
 import { ChallengeSheet } from '../today/sheets'
+import { nextMonth, shiftMonth } from './months'
 import styles from './Challenge.module.css'
 
-function shiftMonth(month: string, delta: number): string {
-  const [y, m] = month.split('-').map(Number)
-  const d = new Date(y, m - 1 + delta, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+/** Verdict for a finished month, by share of days completed. */
+function resultKey(share: number) {
+  if (share >= 1) return 'challenge.result.perfect'
+  if (share >= 0.8) return 'challenge.result.strong'
+  if (share >= 0.5) return 'challenge.result.good'
+  return 'challenge.result.keepGoing'
 }
 
 export function ChallengePage() {
   const { t, l, lang } = useT()
   const todayDate = todayISO()
   const currentMonth = monthKey(todayDate)
-  const [month, setMonth] = useState(currentMonth)
+  const upcoming = nextMonth(currentMonth)
+  const [params] = useSearchParams()
+  const [month, setMonth] = useState(params.get('month') === upcoming ? upcoming : currentMonth)
   const [openDate, setOpenDate] = useState<ISODate | null>(null)
   const [picking, setPicking] = useState(false)
 
@@ -31,6 +37,8 @@ export function ChallengePage() {
   const n = daysInMonth(month)
   const monthName = formatMonth(`${month}-01`, lang)
   const isCurrent = month === currentMonth
+  const isNext = month === upcoming
+  const isPast = month < currentMonth
 
   const dates = Array.from({ length: n }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`)
   const tasks = challenge?.tasks ?? []
@@ -52,20 +60,47 @@ export function ChallengePage() {
           type="button"
           className={styles.navButton}
           onClick={() => setMonth(shiftMonth(month, 1))}
-          disabled={isCurrent}
+          disabled={isNext}
           aria-label={t('challenge.next')}
         >
           <Icon name="chevronRight" />
         </button>
       </div>
 
-      {!challenge ? (
+      {isNext ? (
+        <Card>
+          <div className="label">{t('challenge.nextTitle')}</div>
+          {challenge ? (
+            <>
+              <div className={styles.score}>{l(challengeIdeas.find((c) => c.id === challenge.ideaId)?.name ?? { en: '', bs: '' })}</div>
+              <ul className={styles.tasks}>
+                {challenge.tasks.map((task) => (
+                  <li key={task.id}>
+                    <span>{l(task.name)}</span>
+                    <span className="muted">
+                      {task.unit === 'check'
+                        ? '✓'
+                        : `${task.target}${task.rampTo ? `→${task.rampTo}` : ''} ${t(task.unit === 'reps' ? 'unit.reps' : task.unit === 'seconds' ? 'unit.seconds' : 'unit.minutes')}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <div className="muted">{t('challenge.nextNone')}</div>
+          )}
+          <Button block onClick={() => setPicking(true)}>
+            {challenge ? t('challenge.change') : t('challenge.pickButton')}
+          </Button>
+        </Card>
+      ) : !challenge ? (
         <p className="muted">{t('challenge.none')}</p>
       ) : (
         <>
           <Card>
             <div className="label">{l(challengeIdeas.find((c) => c.id === challenge.ideaId)?.name ?? { en: '', bs: '' })}</div>
             <div className={styles.score}>{t('challenge.daysDone', { a: complete.size, b: n - startDay + 1 })}</div>
+            {isPast && <div className={styles.result}>{t(resultKey(complete.size / (n - startDay + 1)))}</div>}
             <div className="muted">{t('challenge.best', { n: bestStreak(complete) })}</div>
             {isCurrent && (
               <>
@@ -131,7 +166,7 @@ export function ChallengePage() {
       )}
 
       <Sheet open={picking} onClose={() => setPicking(false)} title={t('challenge.pick', { month: monthName })}>
-        <div className="muted">{t('challenge.changeWarn')}</div>
+        {isCurrent && <div className="muted">{t('challenge.changeWarn')}</div>}
         {challengeIdeas.map((idea) => (
           <Button
             key={idea.id}

@@ -12,6 +12,10 @@ export interface Settings {
   voice: boolean
   /** Get-ready countdown before timed work, in seconds. */
   readySec: number
+  /** Start of the test window the user chose to skip, so the reminder stays quiet until the next one. */
+  retestSkipped: string
+  /** Milestones already celebrated on Today. */
+  seenBadges: string[]
 }
 
 export const defaultSettings = (): Settings => ({
@@ -21,6 +25,8 @@ export const defaultSettings = (): Settings => ({
   walkoutUrl: '',
   voice: true,
   readySec: 10,
+  retestSkipped: '',
+  seenBadges: [],
 })
 
 export async function loadSettings(): Promise<Settings> {

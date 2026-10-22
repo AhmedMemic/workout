@@ -2,6 +2,8 @@ import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
 import { CornerDB } from './db'
 import { exportBackup, importBackup, parseBackup } from './backup'
+import { loadAllData } from './queries'
+import { computeStats } from '../logic/stats'
 
 describe('backup', () => {
   it('round-trips every table', async () => {
@@ -24,5 +26,19 @@ describe('backup', () => {
 
   it('rejects other files', () => {
     expect(() => parseBackup('{"hello":1}')).toThrow()
+  })
+})
+
+describe('loadAllData', () => {
+  it('reads every table and feeds the milestone stats', async () => {
+    const d = new CornerDB('all')
+    await d.sessions.add({ date: '2026-10-21', templateId: 'strengthB', status: 'done', startedAt: 2, sets: [] })
+    await d.sessions.add({ date: '2026-10-19', templateId: 'strengthA', status: 'done', startedAt: 1, sets: [] })
+    await d.daily.put({ date: '2026-10-20', weightKg: 85, deskReset: true })
+    await d.goals.add({ metric: 'weight', target: 80, start: 85, createdAt: '2026-10-20' })
+    const data = await loadAllData(d)
+    expect(data.sessions.map((s) => s.templateId)).toEqual(['strengthA', 'strengthB'])
+    expect(data.goals).toHaveLength(1)
+    expect(computeStats(data, '2026-10-22')).toMatchObject({ workouts: 2, deskResets: 1, bestStreak: 3 })
   })
 })

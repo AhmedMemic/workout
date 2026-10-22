@@ -1,11 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, type ChallengeDay, type DailyLog } from './db'
+import { db, type ChallengeDay, type CornerDB, type DailyLog, type Goal } from './db'
 import { challengeIdeas, starterChallenge } from '../data/challenges'
 import type { TemplateId } from '../data/templates'
 import type { ChainId } from '../data/types'
 import { addDays, dayOfMonth, monthKey, today, type ISODate } from '../logic/dates'
 import { isDayComplete } from '../logic/challenge'
 import type { Levels } from '../logic/progression'
+import type { AllData } from '../logic/stats'
+import { currentValue, isReached } from '../logic/goals'
 
 // ── Daily log ──────────────────────────────────────────────────
 
@@ -109,4 +111,44 @@ export function useActiveDates(): Set<ISODate> | undefined {
     }
     return active
   }, [])
+}
+
+// ── Everything (progress, goals, badges) ───────────────────────
+
+/** Every table the progress, goals and milestones need, in one read. */
+export async function loadAllData(database: CornerDB = db): Promise<AllData> {
+  const [sessions, daily, tests, goals, levelRows, challenges, challengeDays] = await Promise.all([
+    database.sessions.toArray().then((rows) => rows.sort((a, b) => a.startedAt - b.startedAt)),
+    database.daily.orderBy('date').toArray(),
+    database.tests.orderBy('date').toArray(),
+    database.goals.toArray(),
+    database.levels.toArray(),
+    database.challenges.toArray(),
+    database.challengeDays.toArray(),
+  ])
+  const levels = Object.fromEntries(levelRows.map((r) => [r.chain, r.step])) as Levels
+  return { sessions, daily, tests, goals, levels, challenges, challengeDays }
+}
+
+export function useAllData(): AllData | undefined {
+  return useLiveQuery(() => loadAllData(), [])
+}
+
+// ── Goals ──────────────────────────────────────────────────────
+
+export async function addGoal(goal: Omit<Goal, 'id'>): Promise<void> {
+  await db.goals.add(goal)
+}
+
+export async function deleteGoal(id: number): Promise<void> {
+  await db.goals.delete(id)
+}
+
+/** Stamps goals that are reached now, so they stay reached if the number moves back a bit. */
+export async function markReachedGoals(data: AllData, date: ISODate): Promise<void> {
+  for (const g of data.goals) {
+    if (!g.reachedAt && isReached(g, currentValue(g.metric, data.daily, data.tests))) {
+      await db.goals.update(g.id!, { reachedAt: date })
+    }
+  }
 }

@@ -68,6 +68,20 @@ export interface TestResult {
   hangSec?: number
 }
 
+export type GoalMetric = 'weight' | 'waistCm' | 'pushups' | 'plankSec' | 'squats60' | 'hangSec'
+
+export interface Goal {
+  id?: number
+  metric: GoalMetric
+  target: number
+  /** Value when the goal was set, so progress can be shown as a bar. */
+  start: number
+  createdAt: ISODate
+  deadline?: ISODate
+  /** First day the target was reached; a goal stays reached after that. */
+  reachedAt?: ISODate
+}
+
 export interface SettingRow {
   key: string
   value: unknown
@@ -81,6 +95,7 @@ export class CornerDB extends Dexie {
   challenges!: Table<Challenge, string>
   challengeDays!: Table<ChallengeDay, [string, string]>
   tests!: Table<TestResult, number>
+  goals!: Table<Goal, number>
 
   constructor(name = 'corner') {
     super(name)
@@ -93,9 +108,12 @@ export class CornerDB extends Dexie {
       challengeDays: '[month+date], month',
       tests: '++id, date',
     })
+    this.version(2).stores({
+      goals: '++id, metric',
+    })
   }
 }
 
 export const db = new CornerDB()
 
-export const tableNames = ['settings', 'sessions', 'levels', 'daily', 'challenges', 'challengeDays', 'tests'] as const
+export const tableNames = ['settings', 'sessions', 'levels', 'daily', 'challenges', 'challengeDays', 'tests', 'goals'] as const

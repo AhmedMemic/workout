@@ -88,3 +88,10 @@ export function formatMonth(s: ISODate, lang: string): string {
 export function formatNumber(n: number, lang: string): string {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'bs' ? '.' : ',')
 }
+
+/** "22 Oct" / "22. okt" — compact date for chart axes. */
+export function formatShort(s: ISODate, lang: string): string {
+  const d = Number(s.slice(8, 10))
+  const m = pick(lang).months[Number(s.slice(5, 7)) - 1].slice(0, 3)
+  return lang === 'bs' ? `${d}. ${m}` : `${d} ${m[0].toUpperCase()}${m.slice(1)}`
+}

@@ -6,6 +6,9 @@ import { bestStreak, currentStreak } from './streak'
 import { isDayComplete, targetForDay } from './challenge'
 import { templates, type StrengthTemplate } from '../data/templates'
 import { starterChallenge } from '../data/challenges'
+import { currentValue, goalProgress, isReached } from './goals'
+import { testStatus } from './retest'
+import { badges, isEarned } from './badges'
 
 // 2026-10-26 is a Monday
 const MON = '2026-10-26'
@@ -104,5 +107,43 @@ describe('challenge', () => {
   it('a day is complete when every task is done', () => {
     expect(isDayComplete(starterChallenge.tasks, ['pushups', 'plank'])).toBe(false)
     expect(isDayComplete(starterChallenge.tasks, ['pushups', 'plank', 'situps'])).toBe(true)
+  })
+})
+
+describe('goals', () => {
+  const daily = [
+    { date: '2026-10-01', weightKg: 86 },
+    { date: '2026-10-20', weightKg: 84.4 },
+    { date: '2026-10-22', weightKg: 84 },
+  ]
+  it('uses the 7-day weight average and the latest test', () => {
+    expect(currentValue('weight', daily, [])).toBe(84.2)
+    expect(currentValue('pushups', [], [{ date: '2026-10-01', pushups: 8 }, { date: '2026-10-29', pushups: 12 }, { date: '2026-11-01', waistCm: 90 }])).toBe(12)
+    expect(currentValue('plankSec', [], [])).toBeUndefined()
+  })
+  it('measures progress in the right direction', () => {
+    const lose = { metric: 'weight' as const, start: 86, target: 80, createdAt: '2026-10-01' }
+    expect(goalProgress(lose, 83)).toBeCloseTo(0.5)
+    expect(goalProgress(lose, 87)).toBe(0)
+    expect(isReached(lose, 79.9)).toBe(true)
+    const gain = { metric: 'pushups' as const, start: 8, target: 20, createdAt: '2026-10-01' }
+    expect(goalProgress(gain, 14)).toBeCloseTo(0.5)
+    expect(isReached(gain, 19)).toBe(false)
+  })
+})
+
+describe('re-tests', () => {
+  it('asks for a baseline, then every 4 weeks', () => {
+    expect(testStatus('2026-10-19', [], '2026-10-22')).toMatchObject({ due: true, number: 1 })
+    expect(testStatus('2026-10-19', ['2026-10-20'], '2026-10-30')).toMatchObject({ due: false, next: '2026-11-16' })
+    expect(testStatus('2026-10-19', ['2026-10-20'], '2026-11-16')).toMatchObject({ due: true, number: 2, since: '2026-11-16' })
+  })
+})
+
+describe('badges', () => {
+  it('earns a badge when its stat reaches the need', () => {
+    const stats = { workouts: 10, deskResets: 0, bestStreak: 2, levelUps: 0, fullChallengeMonths: 0, weightLost: 2.1, tests: 1, goalsReached: 0 }
+    const earned = badges.filter((b) => isEarned(b, stats)).map((b) => b.id)
+    expect(earned).toEqual(['first-bell', 'workouts-10', 'weight-2', 'baseline'])
   })
 })
