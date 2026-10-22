@@ -16,6 +16,12 @@ export interface Settings {
   retestSkipped: string
   /** Milestones already celebrated on Today. */
   seenBadges: string[]
+  /** Day of the last export, for the backup reminder ('' = never). */
+  lastBackupAt: string
+  /** Backup reminder hidden until this day. */
+  backupSnoozedUntil: string
+  /** Monday of the week whose review was dismissed on Today. */
+  reviewSeenWeek: string
 }
 
 export const defaultSettings = (): Settings => ({
@@ -27,6 +33,9 @@ export const defaultSettings = (): Settings => ({
   readySec: 10,
   retestSkipped: '',
   seenBadges: [],
+  lastBackupAt: '',
+  backupSnoozedUntil: '',
+  reviewSeenWeek: '',
 })
 
 export async function loadSettings(): Promise<Settings> {

@@ -95,3 +95,13 @@ export function formatShort(s: ISODate, lang: string): string {
   const m = pick(lang).months[Number(s.slice(5, 7)) - 1].slice(0, 3)
   return lang === 'bs' ? `${d}. ${m}` : `${d} ${m[0].toUpperCase()}${m.slice(1)}`
 }
+
+const longDays = {
+  en: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+  bs: ['ponedjeljak', 'utorak', 'srijeda', 'četvrtak', 'petak', 'subota', 'nedjelja'],
+}
+
+/** Full weekday name, Monday = 0. */
+export function weekdayLong(index: number, lang: string): string {
+  return (lang === 'bs' ? longDays.bs : longDays.en)[index]
+}

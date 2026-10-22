@@ -1,4 +1,6 @@
 import { db as defaultDb, tableNames, type CornerDB } from './db'
+import { saveSetting } from './settings'
+import { today } from '../logic/dates'
 
 const FORMAT = 'corner-backup'
 const VERSION = 1
@@ -49,4 +51,45 @@ export function downloadBackup(backup: Backup): void {
   a.download = backupFileName()
   a.click()
   URL.revokeObjectURL(url)
+}
+
+/**
+ * A file the share sheet accepts. Chrome won't share .json, so fall back to the same
+ * content as .txt (import accepts both).
+ */
+function shareableFile(backup: Backup): File | undefined {
+  if (typeof navigator === 'undefined' || !navigator.canShare) return undefined
+  const json = JSON.stringify(backup, null, 2)
+  const base = backupFileName().replace(/\.json$/, '')
+  const candidates = [
+    new File([json], `${base}.json`, { type: 'application/json' }),
+    new File([json], `${base}.txt`, { type: 'text/plain' }),
+  ]
+  return candidates.find((f) => navigator.canShare({ files: [f] }))
+}
+
+export function canShareBackup(): boolean {
+  return !!shareableFile({ format: FORMAT, version: VERSION, exportedAt: '', tables: {} })
+}
+
+/**
+ * Backs everything up and remembers when. `share` opens the phone's share sheet
+ * (Google Drive, email…); otherwise the file goes to Downloads.
+ * Returns false if the share sheet was cancelled.
+ */
+export async function backUpNow(how: 'download' | 'share'): Promise<boolean> {
+  const backup = await exportBackup()
+  if (how === 'share') {
+    const file = shareableFile(backup)
+    if (!file) return false
+    try {
+      await navigator.share({ files: [file], title: 'Corner backup' })
+    } catch {
+      return false
+    }
+  } else {
+    downloadBackup(backup)
+  }
+  await saveSetting('lastBackupAt', today())
+  return true
 }

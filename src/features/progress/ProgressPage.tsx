@@ -10,7 +10,9 @@ import { templates } from '../../data/templates'
 import { db, type Goal, type GoalMetric, type TestResult } from '../../db/db'
 import { useSettings } from '../../db/settings'
 import { deleteGoal, markReachedGoals, useAllData } from '../../db/queries'
-import { addDays, formatDay, formatShort, startOfWeek, today as todayISO } from '../../logic/dates'
+import { addDays, formatDay, formatShort, startOfWeek, today as todayISO, weekday } from '../../logic/dates'
+import { weekReview } from '../../logic/weekReview'
+import { WeekReviewCard } from '../today/WeekReviewCard'
 import { currentValue, goalProgress, lowerIsBetter, weightAverage } from '../../logic/goals'
 import { testStatus } from '../../logic/retest'
 import { computeStats } from '../../logic/stats'
@@ -145,6 +147,8 @@ export function ProgressPage() {
     if (params.has('test')) setParams({}, { replace: true })
   }
 
+  const weekStart = startOfWeek(date)
+
   // ── weight
   const weighIns = data.daily.filter((d) => d.weightKg)
   const since = addDays(date, -89)
@@ -158,7 +162,6 @@ export function ProgressPage() {
 
   // ── workouts
   const done = data.sessions.filter((s) => s.status === 'done').reverse()
-  const weekStart = startOfWeek(date)
   const thisWeek = done.filter((s) => s.date >= weekStart).length
   const weeks = Array.from({ length: 12 }, (_, i) => addDays(weekStart, -7 * (11 - i)))
   const bars = weeks.map((w) => ({
@@ -189,6 +192,11 @@ export function ProgressPage() {
           {t('goal.add')}
         </Button>
       </Card>
+
+      {data.sessions.some((s) => s.status === 'done') && (
+        // the week so far on Sunday, otherwise the last full week
+        <WeekReviewCard review={weekReview(data, weekday(date) === 6 ? weekStart : addDays(weekStart, -7), settings.stepGoal)} />
+      )}
 
       <Card>
         <div className="label">{t('progress.weight')}</div>

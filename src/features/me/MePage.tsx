@@ -4,13 +4,14 @@ import { LangToggle } from '../../components/LangToggle'
 import { Button, Card, Chips, ToggleChip } from '../../components/ui'
 import { useT } from '../../i18n/I18nProvider'
 import { saveSetting, useSettings, type Settings } from '../../db/settings'
-import { downloadBackup, exportBackup, importBackup, parseBackup } from '../../db/backup'
+import { backUpNow, canShareBackup, importBackup, parseBackup } from '../../db/backup'
+import { formatDay } from '../../logic/dates'
 import styles from './Me.module.css'
 
 type TextKey = 'playlistUrl' | 'walkoutUrl'
 
 export function MePage() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const settings = useSettings()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -116,16 +117,24 @@ export function MePage() {
       <Card>
         <div className="label">{t('me.backup')}</div>
         <div className="muted">{t('me.backupHint')}</div>
-        <Button block onClick={async () => downloadBackup(await exportBackup())}>
+        <div className={settings.lastBackupAt ? 'muted' : styles.warn}>
+          {settings.lastBackupAt ? t('me.lastBackup', { date: formatDay(settings.lastBackupAt, lang) }) : t('backup.neverShort')}
+        </div>
+        <Button block onClick={() => void backUpNow('download')}>
           {t('me.export')}
         </Button>
+        {canShareBackup() && (
+          <Button variant="secondary" block onClick={() => void backUpNow('share')}>
+            {t('backup.share')}
+          </Button>
+        )}
         <Button variant="secondary" block onClick={() => fileInput.current?.click()}>
           {t('me.import')}
         </Button>
         <input
           ref={fileInput}
           type="file"
-          accept="application/json,.json"
+          accept="application/json,.json,text/plain,.txt"
           hidden
           onChange={(e) => {
             const file = e.target.files?.[0]

@@ -9,6 +9,7 @@ import { starterChallenge } from '../data/challenges'
 import { currentValue, goalProgress, isReached } from './goals'
 import { testStatus } from './retest'
 import { badges, isEarned } from './badges'
+import { weekReview } from './weekReview'
 
 // 2026-10-26 is a Monday
 const MON = '2026-10-26'
@@ -145,5 +146,43 @@ describe('badges', () => {
     const stats = { workouts: 10, deskResets: 0, bestStreak: 2, levelUps: 0, fullChallengeMonths: 0, weightLost: 2.1, tests: 1, goalsReached: 0 }
     const earned = badges.filter((b) => isEarned(b, stats)).map((b) => b.id)
     expect(earned).toEqual(['first-bell', 'workouts-10', 'weight-2', 'baseline'])
+  })
+})
+
+describe('week review', () => {
+  const empty = { sessions: [], daily: [], tests: [], goals: [], levels: {}, challenges: [], challengeDays: [] }
+  const session = (date: string, templateId: 'strengthA' | 'strengthB' | 'strengthC' | 'walk') =>
+    ({ date, templateId, status: 'done' as const, startedAt: 0, sets: [] })
+
+  it('counts the week and flags a strength day missed two weeks running', () => {
+    const data = {
+      ...empty,
+      sessions: [
+        session('2026-10-19', 'strengthA'), session('2026-10-21', 'strengthB'), // last week: Friday missed
+        session('2026-10-26', 'strengthA'), session('2026-10-28', 'strengthB'), session('2026-10-29', 'walk'),
+      ],
+      daily: [
+        { date: '2026-10-25', weightKg: 85 },
+        { date: '2026-10-26', deskReset: true, food: { water: true, proteinVeg: true } },
+        { date: '2026-11-01', weightKg: 84.4 },
+      ],
+    }
+    const r = weekReview(data, '2026-10-26', 7000)
+    expect(r).toMatchObject({ strength: 2, otherWorkouts: 1, lastWeekWorkouts: 2, deskResets: 1, weightChange: -0.6 })
+    expect(r.focus).toEqual({ key: 'missedDay', day: 4 })
+  })
+
+  it('a make-up the next day counts, and a full week says keep going', () => {
+    const daily = Array.from({ length: 7 }, (_, i) => ({
+      date: addDays('2026-10-26', i),
+      deskReset: true,
+      food: { noSugaryDrinks: true, water: true, noSnacks: true, proteinVeg: true },
+    }))
+    const data = {
+      ...empty,
+      sessions: [session('2026-10-26', 'strengthA'), session('2026-10-29', 'strengthB'), session('2026-10-30', 'strengthC')],
+      daily,
+    }
+    expect(weekReview(data, '2026-10-26', 7000).focus).toEqual({ key: 'keepGoing' })
   })
 })

@@ -67,6 +67,8 @@ src/
 - **Goals** (`goals` table, schema v2) track weight (7-day average) or a test metric, from a start value to a target; a goal is stamped `reachedAt` once and stays reached.
 - **Re-tests:** baseline in the first 4-week window from `startDate`, then one per window (`logic/retest.ts`); Today shows a reminder until a test is logged or skipped.
 - **Milestones** are computed from data, never stored (`logic/badges.ts` + `logic/stats.ts`); `seenBadges` in settings only tracks which ones Today has celebrated.
+- **Week review** (`logic/weekReview.ts`) shows on Today on Sunday (this week) and Monday (last week) until dismissed, and always on Progress; it picks one focus for next week by fixed priority.
+- **Backups:** Today nags when the last export (`lastBackupAt`) is 7+ days old; on Android the share sheet sends the file to Drive (as .txt when .json isn't shareable, so import accepts both).
 - **Food:** habits are tracked, but there is no calorie or diet tracking, because meals are shared with family.
 
 ## Deploy
