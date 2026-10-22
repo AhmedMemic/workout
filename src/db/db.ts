@@ -8,6 +8,8 @@ export interface LoggedSet {
   slotId?: string
   exerciseId: string
   setNo: number
+  /** 1 = left, 2 = right, for exercises done one side at a time. */
+  side?: 1 | 2
   reps?: number
   seconds?: number
   weightKg?: number

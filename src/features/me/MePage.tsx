@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Page } from '../../components/Page'
 import { LangToggle } from '../../components/LangToggle'
-import { Button, Card } from '../../components/ui'
+import { Button, Card, Chips, ToggleChip } from '../../components/ui'
 import { useT } from '../../i18n/I18nProvider'
 import { saveSetting, useSettings, type Settings } from '../../db/settings'
 import { downloadBackup, exportBackup, importBackup, parseBackup } from '../../db/backup'
@@ -79,6 +79,32 @@ export function MePage() {
             }}
           />
         </label>
+      </Card>
+
+      <Card>
+        <div className="label">{t('me.workout')}</div>
+        <div className={styles.field}>
+          <span>{t('me.voice')}</span>
+        </div>
+        <Chips>
+          <ToggleChip selected={settings.voice} onClick={() => save('voice', true)}>
+            {t('me.on')}
+          </ToggleChip>
+          <ToggleChip selected={!settings.voice} onClick={() => save('voice', false)}>
+            {t('me.off')}
+          </ToggleChip>
+        </Chips>
+        <div className="muted">{t('me.voiceHint')}</div>
+        <div className={styles.field}>
+          <span>{t('me.readySec')}</span>
+        </div>
+        <Chips>
+          {[5, 10, 15].map((n) => (
+            <ToggleChip key={n} selected={settings.readySec === n} onClick={() => save('readySec', n)}>
+              {n} {t('unit.seconds')}
+            </ToggleChip>
+          ))}
+        </Chips>
       </Card>
 
       <Card>

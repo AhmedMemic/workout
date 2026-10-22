@@ -8,6 +8,10 @@ export interface Settings {
   stepGoal: number
   playlistUrl: string
   walkoutUrl: string
+  /** Spoken exercise names and cues in the player. */
+  voice: boolean
+  /** Get-ready countdown before timed work, in seconds. */
+  readySec: number
 }
 
 export const defaultSettings = (): Settings => ({
@@ -15,6 +19,8 @@ export const defaultSettings = (): Settings => ({
   stepGoal: 7000,
   playlistUrl: '',
   walkoutUrl: '',
+  voice: true,
+  readySec: 10,
 })
 
 export async function loadSettings(): Promise<Settings> {

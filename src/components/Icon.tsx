@@ -37,6 +37,19 @@ const paths = {
       <path d="M12 9v4l3 2M9 2h6" />
     </>
   ),
+  list: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
+  volume: (
+    <>
+      <path d="M4 9v6h4l5 4V5L8 9z" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+    </>
+  ),
+  volumeOff: (
+    <>
+      <path d="M4 9v6h4l5 4V5L8 9z" />
+      <path d="M17 9l5 6M22 9l-5 6" />
+    </>
+  ),
   music: (
     <>
       <path d="M9 18V5l11-2v13" />

@@ -10,20 +10,23 @@ import type { LoggedSet } from '../../db/db'
 import { setLevel } from '../../db/queries'
 import { levelOf, resolveSlot, targetFor, type Levels } from '../../logic/progression'
 import { formatClock, useCountdown, useElapsed } from '../../hooks/useCountdown'
+import { useWorkTimer } from '../../hooks/useWorkTimer'
 import { signal } from '../../hooks/device'
 import type { RepsStep, RestStep, SetStep, Step, TimedStep, WalkStep } from './steps'
 import styles from './Player.module.css'
 
 const sectionKey = (s: Step['section']) => `player.section.${s}` as MessageKey
+export const sideKey = (side: 1 | 2) => (side === 1 ? 'player.left' : 'player.right') as MessageKey
 
-function ExerciseHeader({ exerciseId, label }: { exerciseId: string; label: string }) {
-  const { l, lang } = useT()
+function ExerciseHeader({ exerciseId, label, side }: { exerciseId: string; label: string; side?: 1 | 2 }) {
+  const { t, l, lang } = useT()
   const ex = exerciseById[exerciseId]
   return (
     <div className={styles.header}>
       <div className="label">{label}</div>
       <h1 className={styles.name}>{l(ex.name)}</h1>
       <div className={styles.otherName}>{ex.name[lang === 'en' ? 'bs' : 'en']}</div>
+      {side && <div className={styles.side}>{t(sideKey(side))}</div>}
     </div>
   )
 }
@@ -39,25 +42,12 @@ function HowTo({ exerciseId }: { exerciseId: string }) {
 
 export function UpNext({ step, levels }: { step: Step | undefined; levels: Levels }) {
   const { t, l } = useT()
-  if (!step || step.type === 'rest') return null
-  let title = ''
-  let meta = ''
-  if (step.type === 'set') {
-    const id = resolveSlot(step.slot, levels)
-    const target = targetFor(step.slot, id)
-    title = l(exerciseById[id].name)
-    meta = `${target.min}–${target.max} ${t(target.measure === 'time' ? 'unit.seconds' : 'unit.reps')}`
-  } else if (step.type === 'walk') {
-    return null
-  } else {
-    title = l(exerciseById[step.exerciseId].name)
-    meta =
-      step.type === 'timed'
-        ? step.seconds >= 60
-          ? formatClock(step.seconds)
-          : `${step.seconds} ${t('unit.seconds')}`
-        : `${step.reps} ${t('unit.reps')}`
-  }
+  if (!step || step.type === 'rest' || step.type === 'walk') return null
+  return <UpNextCard {...describeStep(step, levels, t, l)} />
+}
+
+function UpNextCard({ title, meta }: { title: string; meta: string }) {
+  const { t } = useT()
   return (
     <div className={styles.upNext}>
       <div className="label">{t('player.upNext')}</div>
@@ -67,17 +57,94 @@ export function UpNext({ step, levels }: { step: Step | undefined; levels: Level
   )
 }
 
+type T = ReturnType<typeof useT>['t']
+type L = ReturnType<typeof useT>['l']
+
+/** Name + short target line for a step (Up next card, session list). */
+export function describeStep(step: Step, levels: Levels, t: T, l: L): { title: string; meta: string } {
+  switch (step.type) {
+    case 'set': {
+      const id = resolveSlot(step.slot, levels)
+      const target = targetFor(step.slot, id)
+      const unit = t(target.measure === 'time' ? 'unit.seconds' : 'unit.reps')
+      return {
+        title: l(exerciseById[id].name),
+        meta: `${t('player.set', { a: step.setNo, b: step.totalSets })} · ${target.min}–${target.max} ${unit}`,
+      }
+    }
+    case 'timed':
+      return {
+        title: l(exerciseById[step.exerciseId].name),
+        meta: [
+          step.seconds >= 60 ? formatClock(step.seconds) : `${step.seconds} ${t('unit.seconds')}`,
+          step.side && t(sideKey(step.side)),
+          step.round && t('player.round', { a: step.round, b: step.totalRounds! }),
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      }
+    case 'reps':
+      return {
+        title: l(exerciseById[step.exerciseId].name),
+        meta: [
+          `${step.reps} ${t('unit.reps')}${step.perSide && !step.side ? ` ${t('player.perSide')}` : ''}`,
+          step.side && t(sideKey(step.side)),
+          step.round && t('player.round', { a: step.round, b: step.totalRounds! }),
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      }
+    case 'rest':
+      return { title: t('player.rest'), meta: `${step.seconds} ${t('unit.seconds')}` }
+    case 'walk':
+      return { title: l(exerciseById['brisk-walk'].name), meta: `${step.minutes} ${t('unit.minutes')}` }
+  }
+}
+
+// ── Timer display + controls (get ready → work → stops at 0) ────
+
+type WorkTimer = ReturnType<typeof useWorkTimer>
+
+function TimerPanel({ timer, startLabel }: { timer: WorkTimer; startLabel: string }) {
+  const { t } = useT()
+  const ready = timer.phase === 'ready'
+  return (
+    <>
+      <div className={styles.centerBlock}>
+        <div className={styles.timerLabel}>{ready ? t('player.getReady') : ' '}</div>
+        <div className={`${styles.huge} ${ready ? styles.accent : ''}`}>{ready ? timer.left : formatClock(timer.left)}</div>
+      </div>
+      {timer.phase === 'idle' ? (
+        <Button block onClick={timer.start}>
+          <Icon name="play" size={18} /> {startLabel}
+        </Button>
+      ) : (
+        <div className={styles.twoCol}>
+          <Button variant="secondary" onClick={timer.running ? timer.pause : timer.resume} disabled={timer.phase === 'done'}>
+            {timer.running ? t('player.pause') : t('player.resume')}
+          </Button>
+          <Button variant="secondary" onClick={timer.reset}>
+            {t('player.reset')}
+          </Button>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ── Strength set (logged) ───────────────────────────────────────
 
 interface SetViewProps {
   step: SetStep
+  side?: 1 | 2
   levels: Levels
   sets: LoggedSet[]
   next: Step | undefined
+  readySec: number
   onLog: (set: LoggedSet) => void
 }
 
-export function SetView({ step, levels, sets, next, onLog }: SetViewProps) {
+export function SetView({ step, side, levels, sets, next, readySec, onLog }: SetViewProps) {
   const { t, l } = useT()
   const exerciseId = resolveSlot(step.slot, levels)
   const ex = exerciseById[exerciseId]
@@ -87,10 +154,20 @@ export function SetView({ step, levels, sets, next, onLog }: SetViewProps) {
   const initial = previous ? (previous.reps ?? previous.seconds ?? target.min) : target.min
   const [value, setValue] = useState(initial)
   const [switched, setSwitched] = useState<string | null>(null)
-  const [timerStart, setTimerStart] = useState<number | null>(null)
-  const elapsed = useElapsed(timerStart)
   const isTime = target.measure === 'time'
   const stepSize = isTime ? 5 : 1
+
+  const log = (amount: number) =>
+    onLog({
+      slotId: step.slot.id,
+      exerciseId,
+      setNo: step.setNo,
+      ...(side && { side }),
+      ...(isTime ? { seconds: amount } : { reps: amount }),
+    })
+
+  const timer = useWorkTimer({ seconds: value, readySec, onFinish: () => log(value) })
+  const timing = timer.phase !== 'idle'
 
   const shift = async (delta: number) => {
     if (!step.slot.chain) return
@@ -98,14 +175,20 @@ export function SetView({ step, levels, sets, next, onLog }: SetViewProps) {
     const nextStep = Math.min(Math.max(levelOf(chain, levels) + delta, 0), chains[chain].steps.length - 1)
     await setLevel(chain, nextStep)
     const newId = chains[chain].steps[nextStep]
+    timer.reset()
     setSwitched(l(exerciseById[newId].name))
     setValue(targetFor(step.slot, newId).min)
   }
+
+  const isLastSide = !side || side === 2
+  const logLabel =
+    !isLastSide ? t('player.logSide') : step.restAfter ? t('player.logSetRest', { n: step.restAfter }) : t('player.logSet')
 
   return (
     <>
       <ExerciseHeader
         exerciseId={exerciseId}
+        side={side}
         label={`${step.slot.id.slice(1)} · ${t('player.set', { a: step.setNo, b: step.totalSets })}`}
       />
       <Chips>
@@ -120,57 +203,46 @@ export function SetView({ step, levels, sets, next, onLog }: SetViewProps) {
       </Chips>
       {switched && <div className={styles.toast}>{t('player.switched', { name: switched })}</div>}
 
-      <div className={styles.counter}>
-        <button
-          type="button"
-          className={styles.round}
-          aria-label={t('player.lessReps')}
-          onClick={() => setValue((v) => Math.max(0, v - stepSize))}
-        >
-          <Icon name="minus" />
-        </button>
-        <div className={styles.counterValue}>
-          <div className={styles.big}>{timerStart !== null ? elapsed : value}</div>
-          <div className="muted">{t(isTime ? 'unit.seconds' : 'unit.reps')}</div>
-        </div>
-        <button
-          type="button"
-          className={styles.round}
-          aria-label={t('player.moreReps')}
-          onClick={() => setValue((v) => v + stepSize)}
-        >
-          <Icon name="plus" />
-        </button>
-      </div>
-
-      {isTime && (
-        <Button
-          variant="secondary"
-          block
-          onClick={() => {
-            if (timerStart === null) setTimerStart(Date.now())
-            else {
-              setValue(elapsed)
-              setTimerStart(null)
-            }
-          }}
-        >
-          {timerStart === null ? t('player.startTimer') : t('player.stopTimer')}
-        </Button>
+      {isTime && timing ? (
+        <TimerPanel timer={timer} startLabel={t('player.startTimer')} />
+      ) : (
+        <>
+          <div className={styles.counter}>
+            <button
+              type="button"
+              className={styles.round}
+              aria-label={t('player.lessReps')}
+              onClick={() => setValue((v) => Math.max(0, v - stepSize))}
+            >
+              <Icon name="minus" />
+            </button>
+            <div className={styles.counterValue}>
+              <div className={styles.big}>{value}</div>
+              <div className="muted">{t(isTime ? 'unit.seconds' : 'unit.reps')}</div>
+            </div>
+            <button
+              type="button"
+              className={styles.round}
+              aria-label={t('player.moreReps')}
+              onClick={() => setValue((v) => v + stepSize)}
+            >
+              <Icon name="plus" />
+            </button>
+          </div>
+          {isTime && (
+            <Button block onClick={timer.start}>
+              <Icon name="play" size={18} /> {t('player.startTimer')}
+            </Button>
+          )}
+        </>
       )}
 
       <Button
         block
-        onClick={() =>
-          onLog({
-            slotId: step.slot.id,
-            exerciseId,
-            setNo: step.setNo,
-            ...(isTime ? { seconds: timerStart !== null ? elapsed : value } : { reps: value }),
-          })
-        }
+        variant={isTime ? 'secondary' : 'primary'}
+        onClick={() => log(isTime && timer.phase === 'work' ? timer.workElapsed : value)}
       >
-        {step.restAfter ? t('player.logSetRest', { n: step.restAfter }) : t('player.logSet')}
+        {logLabel}
       </Button>
 
       {step.slot.chain && (
@@ -185,7 +257,7 @@ export function SetView({ step, levels, sets, next, onLog }: SetViewProps) {
       )}
 
       <div className={styles.footer}>
-        <UpNext step={next} levels={levels} />
+        {side === 1 ? <UpNextCard title={l(ex.name)} meta={t('player.right')} /> : <UpNext step={next} levels={levels} />}
         <HowTo exerciseId={exerciseId} />
       </div>
     </>
@@ -204,12 +276,12 @@ export function RepsView({ step, next, levels, onDone }: { step: RepsStep; next:
     .join(' · ')
   return (
     <>
-      <ExerciseHeader exerciseId={step.exerciseId} label={label} />
+      <ExerciseHeader exerciseId={step.exerciseId} label={label} side={step.side} />
       <div className={styles.centerBlock}>
         <div className={styles.big}>{step.reps}</div>
         <div className="muted">
           {t('unit.reps')}
-          {step.perSide && ` ${t('player.perSide')}`}
+          {step.perSide && !step.side && ` ${t('player.perSide')}`}
         </div>
       </div>
       <Button block onClick={onDone}>
@@ -225,34 +297,28 @@ export function RepsView({ step, next, levels, onDone }: { step: RepsStep; next:
 
 // ── Timed work ──────────────────────────────────────────────────
 
-export function TimedView({ step, next, levels, onDone }: { step: TimedStep; next: Step | undefined; levels: Levels; onDone: () => void }) {
+interface TimedViewProps {
+  step: TimedStep
+  next: Step | undefined
+  levels: Levels
+  readySec: number
+  onDone: () => void
+}
+
+export function TimedView({ step, next, levels, readySec, onDone }: TimedViewProps) {
   const { t, l } = useT()
-  const timer = useCountdown(step.seconds, () => {
-    signal(2)
-    onDone()
-  })
+  const timer = useWorkTimer({ seconds: step.seconds, readySec, autoStart: true, onFinish: onDone })
   const label = [
     t(sectionKey(step.section)),
     step.round && t('player.round', { a: step.round, b: step.totalRounds! }),
-    step.side && t('player.side', { n: step.side }),
   ]
     .filter(Boolean)
     .join(' · ')
   return (
     <>
-      <ExerciseHeader exerciseId={step.exerciseId} label={label} />
+      <ExerciseHeader exerciseId={step.exerciseId} label={label} side={step.side} />
       {step.focus && <div className={styles.focus}>{l(step.focus)}</div>}
-      <div className={styles.centerBlock}>
-        <div className={styles.huge}>{formatClock(timer.left)}</div>
-      </div>
-      <div className={styles.twoCol}>
-        <Button variant="secondary" onClick={timer.running ? timer.pause : timer.resume}>
-          {timer.running ? t('player.pause') : t('player.resume')}
-        </Button>
-        <Button variant="secondary" onClick={onDone}>
-          {t('player.skip')}
-        </Button>
-      </div>
+      <TimerPanel timer={timer} startLabel={t('player.startTimer')} />
       <div className={styles.footer}>
         <UpNext step={next} levels={levels} />
         <HowTo exerciseId={step.exerciseId} />
@@ -282,8 +348,8 @@ export function RestView({ step, next, levels, onDone }: { step: RestStep; next:
         <Button variant="secondary" onClick={() => timer.add(15)}>
           {t('player.add15')}
         </Button>
-        <Button variant="secondary" onClick={onDone}>
-          {t('player.skip')}
+        <Button variant="secondary" onClick={timer.running ? timer.pause : timer.resume}>
+          {timer.running ? t('player.pause') : t('player.resume')}
         </Button>
       </div>
       <div className={styles.footer}>

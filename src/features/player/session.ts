@@ -54,10 +54,15 @@ export async function finishSession(
     for (const slot of slots.values()) {
       if (!slot.chain) continue
       const current = chains[slot.chain].steps[levelOf(slot.chain, levels)]
-      // only sets done with the current step count (not ones before a "too hard" swap)
-      const results = sets
-        .filter((x) => x.slotId === slot.id && x.exerciseId === current)
-        .map((x) => x.reps ?? x.seconds ?? 0)
+      // only sets done with the current step count (not ones before a "too hard" swap);
+      // a two-sided set counts with its weaker side
+      const bySet = new Map<number, number>()
+      for (const x of sets) {
+        if (x.slotId !== slot.id || x.exerciseId !== current) continue
+        const value = x.reps ?? x.seconds ?? 0
+        bySet.set(x.setNo, Math.min(bySet.get(x.setNo) ?? Infinity, value))
+      }
+      const results = [...bySet.values()]
       const next = nextLevel(slot, levels, results, plannedSets)
       if (next !== undefined) {
         await setLevel(slot.chain, next)

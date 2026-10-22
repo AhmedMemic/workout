@@ -18,6 +18,8 @@ export function App() {
   useEffect(() => {
     void ensureStartDate()
     void ensureChallenge(monthKey(today()))
+    // ask the browser not to clear the workout history when storage runs low
+    void navigator.storage?.persist?.().catch(() => false)
   }, [])
 
   return (

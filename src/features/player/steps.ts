@@ -22,6 +22,7 @@ export interface RepsStep {
   exerciseId: string
   reps: number
   perSide: boolean
+  side?: 1 | 2
   round?: number
   totalRounds?: number
 }
@@ -63,6 +64,10 @@ function flowSteps(t: FlowTemplate, section: Section): Step[] {
       } else {
         steps.push({ type: 'timed', section, exerciseId: item.exerciseId, seconds: item.seconds })
       }
+    } else if (perSide && !exerciseById[item.exerciseId].alternating) {
+      const reps = item.reps ?? 10
+      steps.push({ type: 'reps', section, exerciseId: item.exerciseId, reps, perSide, side: 1 })
+      steps.push({ type: 'reps', section, exerciseId: item.exerciseId, reps, perSide, side: 2 })
     } else {
       steps.push({ type: 'reps', section, exerciseId: item.exerciseId, reps: item.reps ?? 10, perSide })
     }
@@ -114,6 +119,12 @@ export function buildSteps(templateId: TemplateId, sets: number): Step[] {
     case 'walk':
       return [{ type: 'walk', section: 'main', minutes: t.minutes }]
   }
+}
+
+/** The previous step that isn't a rest, for the Back button. */
+export function prevWorkStep(steps: Step[], from: number): number | undefined {
+  for (let i = from - 1; i >= 0; i--) if (steps[i].type !== 'rest') return i
+  return undefined
 }
 
 /** The next step that isn't a rest, for the "Up next" card. */

@@ -44,6 +44,11 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
     <Card>
       <div className="label">{id === makeUp ? t('today.makeUp') : t('today.tonight')}</div>
       <h2 className={styles.sessionName}>{l(template.name)}</h2>
+      {isDone && (
+        <div className={styles.doneBadge}>
+          <Icon name="check" size={18} strokeWidth={3} /> {t('today.doneToday')}
+        </div>
+      )}
       <div className="muted">{meta}</div>
       {options.length > 1 && (
         <Chips>
@@ -54,9 +59,9 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
           ))}
         </Chips>
       )}
-      <Link to={`/workout/${id}`} className={buttonClass('primary', true)}>
-        {isDone ? <Icon name="check" size={18} strokeWidth={3} /> : <Icon name="play" size={18} />}
-        {t('today.start')}
+      <Link to={`/workout/${id}`} className={buttonClass(isDone ? 'secondary' : 'primary', true)}>
+        <Icon name="play" size={18} />
+        {isDone ? t('today.again') : t('today.start')}
       </Link>
     </Card>
   )

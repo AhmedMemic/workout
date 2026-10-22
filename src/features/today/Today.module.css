@@ -109,3 +109,15 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+
+.doneBadge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}

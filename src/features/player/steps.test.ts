@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSteps, nextWorkStep } from './steps'
+import { buildSteps, nextWorkStep, prevWorkStep } from './steps'
 
 describe('buildSteps', () => {
   it('strength: warm-up, pairs × sets with rest, grip, cool-down', () => {
@@ -16,6 +16,19 @@ describe('buildSteps', () => {
   it('per-side timed items become two steps', () => {
     const steps = buildSteps('coolDown', 1)
     expect(steps.filter((s) => s.type === 'timed' && s.exerciseId === 'hip-flexor-stretch')).toHaveLength(2)
+  })
+
+  it('per-side reps become two steps, alternating ones stay one', () => {
+    const grip = buildSteps('gripFinisher', 1)
+    expect(grip.filter((s) => s.type === 'reps' && s.exerciseId === 'hand-gripper').map((s) => s.type === 'reps' && s.side)).toEqual([1, 2])
+    const warm = buildSteps('warmUp', 1)
+    expect(warm.filter((s) => s.type === 'reps' && s.exerciseId === 'worlds-greatest-stretch')).toHaveLength(1)
+  })
+
+  it('back skips over rests', () => {
+    const steps = buildSteps('boxingRounds', 1)
+    expect(prevWorkStep(steps, 2)).toBe(0)
+    expect(prevWorkStep(steps, 0)).toBeUndefined()
   })
 
   it('boxing: 6 rounds with rest between, none at the end', () => {
