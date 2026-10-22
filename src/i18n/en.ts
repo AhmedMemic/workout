@@ -195,6 +195,11 @@ export const en = {
   'me.readySec': 'Get-ready time before timed exercises',
   'today.doneToday': 'Done today',
   'today.again': 'Do it again',
+  'fig.start': 'Start',
+  'fig.end': 'End',
+  'fig.hold': 'Hold',
+  'fig.left': 'Left side',
+  'fig.right': 'Right side',
 }
 
 export type MessageKey = keyof typeof en

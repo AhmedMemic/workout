@@ -45,6 +45,7 @@ src/
 ## Conventions
 
 - **Bilingual everything.** UI strings go in `src/i18n/en.ts` with the same key in `bs.ts`. `bs` is typed against `en`'s keys, so a missing key fails `tsc`. User-facing text inside data is an `L10n` (`{ en, bs }`). Exercise `steps` must have the same number of lines in both languages, and a test checks this. Bosnian is Latin script (č ć š ž đ).
+- **Every exercise has a drawing** in `src/data/figures.ts` (stick-figure poses in a 180×130 box, floor at y=121; body in text colour, gear in accent), rendered by `components/ExerciseFigure.tsx`. A test fails if an exercise has no drawing. Per-side exercises run as Left/Right steps unless marked `alternating`.
 - **Data integrity is tested** (`src/data/data.test.ts`). Ids must be unique. Chains and templates must reference real exercises. Slot measures (reps/time) must fit every exercise a slot can resolve to. When you add or rename an exercise, run the tests.
 - **Logic stays pure** in `src/logic/` and gets unit tests. Components read data through `useLiveQuery` and the helpers in `db/queries.ts`.
 - **Dates** are local `YYYY-MM-DD` strings (`ISODate`, from `logic/dates.ts`). Don't use `toISOString()` for days, because it shifts to UTC.
@@ -60,7 +61,8 @@ src/
 - **Progression:** a template slot resolves to `chain.steps[level]`. If every set hits the top of the rep range, the level goes up next session. "Too hard / Too easy" moves one step for the remaining sets and saves the change.
 - **Streak:** consecutive days with any activity (a session, a desk reset, or a full challenge day).
 - **Monthly challenge:** one per month. The starter is 10 push-ups, a plank ramping 30→60 s, and 20 sit-ups. Ramps and day counts begin at `startDay`. Days before the start are not "missed".
-- **Equipment:** 2×5 kg and 1×7 kg dumbbells, a stability ball, grip tools, a pedal resistance band, household items. No mat. A pull-up bar is optional.
+- **Equipment:** 2×5 kg and 1×7 kg dumbbells, a stability ball, grip tools, a pedal resistance band, chair, wall, doorframe. No mat and no usable table, so no table exercises. A pull-up bar is optional.
+- **Player:** timed work has a get-ready countdown (`readySec` setting, skipped right after a rest) and stops at zero with a beep. Voice cues use the Web Speech API (`say()` in `hooks/device.ts`), falling back to a Croatian or Serbian voice for Bosnian.
 - **Apartment:** exercises must be low-noise, so no jumping.
 - **Food:** habits are tracked, but there is no calorie or diet tracking, because meals are shared with family.
 

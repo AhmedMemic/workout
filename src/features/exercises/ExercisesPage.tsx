@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Page } from '../../components/Page'
 import { Icon } from '../../components/Icon'
+import { ExerciseThumb } from '../../components/ExerciseFigure'
 import { Chips, ToggleChip } from '../../components/ui'
 import { useT } from '../../i18n/I18nProvider'
 import { exercises } from '../../data/exercises'
@@ -56,6 +57,7 @@ export function ExercisesPage() {
         {list.map((e) => (
           <li key={e.id}>
             <Link to={`/exercises/${e.id}`} className={styles.row}>
+              <ExerciseThumb exerciseId={e.id} />
               <div className={styles.rowText}>
                 <span className={styles.rowName}>{l(e.name)}</span>
                 <span className={styles.rowMeta}>{e.muscles.map((m) => l(muscleLabels[m])).join(' · ')}</span>

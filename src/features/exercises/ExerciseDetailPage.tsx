@@ -1,6 +1,7 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Page } from '../../components/Page'
 import { Icon } from '../../components/Icon'
+import { ExerciseFigure } from '../../components/ExerciseFigure'
 import { Card, Chip, Chips } from '../../components/ui'
 import { useT } from '../../i18n/I18nProvider'
 import { exerciseById, youtubeUrl } from '../../data/exercises'
@@ -28,6 +29,7 @@ export function ExerciseDetailPage() {
         </button>
       }
     >
+      <ExerciseFigure exerciseId={exercise.id} />
       <Chips>
         {exercise.perSide && <Chip>{t('exercise.perSide')}</Chip>}
         {exercise.measure === 'time' && <Chip>{t('exercise.timed')}</Chip>}

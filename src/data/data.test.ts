@@ -3,6 +3,7 @@ import { exercises, exerciseById } from './exercises'
 import { chains, defaultLevels } from './chains'
 import { templates } from './templates'
 import { challengeIdeas } from './challenges'
+import { figures } from './figures'
 
 describe('static data', () => {
   it('has unique exercise ids', () => {
@@ -52,6 +53,11 @@ describe('static data', () => {
           }
         }
     }
+  })
+
+  it('every exercise has a drawing, and every drawing an exercise', () => {
+    expect(exercises.filter((e) => !figures[e.id]).map((e) => e.id)).toEqual([])
+    expect(Object.keys(figures).filter((id) => !exerciseById[id])).toEqual([])
   })
 
   it('challenge tasks reference real exercises', () => {

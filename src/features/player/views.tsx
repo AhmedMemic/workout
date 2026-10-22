@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button, Chip, Chips } from '../../components/ui'
 import { Icon } from '../../components/Icon'
+import { ExerciseFigure } from '../../components/ExerciseFigure'
 import { useT } from '../../i18n/I18nProvider'
 import type { MessageKey } from '../../i18n/en'
 import { exerciseById, youtubeUrl } from '../../data/exercises'
@@ -27,6 +28,7 @@ function ExerciseHeader({ exerciseId, label, side }: { exerciseId: string; label
       <h1 className={styles.name}>{l(ex.name)}</h1>
       <div className={styles.otherName}>{ex.name[lang === 'en' ? 'bs' : 'en']}</div>
       {side && <div className={styles.side}>{t(sideKey(side))}</div>}
+      <ExerciseFigure exerciseId={exerciseId} compact />
     </div>
   )
 }

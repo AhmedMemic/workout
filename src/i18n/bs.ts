@@ -197,4 +197,9 @@ export const bs: Record<MessageKey, string> = {
   'me.readySec': 'Vrijeme pripreme prije vježbi na vrijeme',
   'today.doneToday': 'Urađeno danas',
   'today.again': 'Uradi ponovo',
+  'fig.start': 'Početak',
+  'fig.end': 'Kraj',
+  'fig.hold': 'Zadrži',
+  'fig.left': 'Lijeva strana',
+  'fig.right': 'Desna strana',
 }
