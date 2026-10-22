@@ -25,7 +25,6 @@ export const equipmentLabels: Record<Equipment, L10n> = {
   ball: { en: 'Stability ball', bs: 'Pilates lopta' },
   band: { en: 'Pedal band', bs: 'Guma s pedalom' },
   chair: { en: 'Chair', bs: 'Stolica' },
-  table: { en: 'Table', bs: 'Sto' },
   backpack: { en: 'Backpack', bs: 'Ranac' },
   towel: { en: 'Towels', bs: 'Peškiri' },
   broomstick: { en: 'Broomstick', bs: 'Drška metle' },

@@ -20,7 +20,7 @@ export const chains: Record<ChainId, Chain> = {
   row: {
     id: 'row',
     name: { en: 'Row', bs: 'Veslanje' },
-    steps: ['band-row', 'table-row-bent', 'table-row-straight', 'table-row-elevated', 'table-row-one-arm'],
+    steps: ['band-row', 'bent-over-row', 'one-arm-db-row', 'tempo-one-arm-row'],
   },
   pullup: {
     id: 'pullup',

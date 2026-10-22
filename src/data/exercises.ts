@@ -3,6 +3,7 @@ import type { Equipment, Exercise, ExerciseKind, Muscle } from './types'
 interface Opts {
   measure?: 'reps' | 'time'
   perSide?: boolean
+  alternating?: boolean
   youtube?: string
 }
 
@@ -26,6 +27,7 @@ function ex(
     steps: { en: stepsEn, bs: stepsBs },
     measure: opts.measure ?? 'reps',
     perSide: opts.perSide,
+    alternating: opts.alternating,
     youtube: opts.youtube ?? `how to ${en.toLowerCase()} proper form`,
   }
 }
@@ -56,8 +58,8 @@ export const exercises: Exercise[] = [
 
   // ── Push family ───────────────────────────────────────────────
   ex('incline-pushup', 'Incline push-up', 'Sklekovi na povišenju', 'strength', ['chest', 'triceps', 'shoulders'], ['chair'],
-    ['Hands on a sturdy chair or table edge, body straight.', 'Lower your chest to the edge.', 'Push back up.'],
-    ['Ruke na stabilnoj stolici ili rubu stola, tijelo ravno.', 'Spusti prsa do ruba.', 'Odgurni se nazad gore.']),
+    ['Hands on the seat of a sturdy chair, body straight.', 'Lower your chest to the edge.', 'Push back up.'],
+    ['Ruke na sjedištu stabilne stolice, tijelo ravno.', 'Spusti prsa do ruba.', 'Odgurni se nazad gore.']),
   ex('pushup', 'Push-up', 'Sklekovi', 'strength', ['chest', 'triceps', 'shoulders', 'core'], ['bodyweight'],
     ['Hands under shoulders, body in one straight line.', 'Lower until the chest is a fist above the floor, elbows about 45°.', 'Push the floor away.'],
     ['Ruke ispod ramena, tijelo u jednoj ravnoj liniji.', 'Spusti se dok prsa nisu šaku od poda, laktovi oko 45°.', 'Odgurni pod.']),
@@ -70,7 +72,7 @@ export const exercises: Exercise[] = [
   ex('archer-pushup', 'Archer push-up', 'Streličarski sklekovi', 'strength', ['chest', 'triceps', 'shoulders'], ['bodyweight'],
     ['Hands wide. Lower towards one hand while the other arm stays straight.', 'Push up, alternate sides.'],
     ['Široke ruke. Spuštaj se prema jednoj ruci, druga ostaje ispružena.', 'Odgurni se, mijenjaj strane.'],
-    { perSide: true }),
+    { perSide: true, alternating: true }),
   ex('floor-press', 'Dumbbell floor press', 'Potisak bučica s poda', 'strength', ['chest', 'triceps'], ['dumbbell5'],
     ['Lie on your back, knees bent, a 5 kg dumbbell in each hand.', 'Lower until the upper arms touch the floor.', 'Press up, slow 3 s down.'],
     ['Lezi na leđa, koljena savijena, bučica od 5 kg u svakoj ruci.', 'Spuštaj dok nadlaktice ne dodirnu pod.', 'Potisni gore, polako 3 s dolje.']),
@@ -108,22 +110,10 @@ export const exercises: Exercise[] = [
   ex('bent-over-row', 'Bent-over row', 'Veslanje u pretklonu', 'strength', ['back', 'biceps'], ['dumbbell5'],
     ['Hinge forward at the hips, back flat, 5 kg dumbbells hanging.', 'Row both to your ribs, squeeze, pause 1 s.', 'Lower slowly.'],
     ['Nagni se iz kukova, leđa ravna, bučice od 5 kg vise.', 'Povuci obje prema rebrima, stisni, pauza 1 s.', 'Spuštaj polako.']),
-  ex('table-row-bent', 'Table row, knees bent', 'Veslanje ispod stola, savijena koljena', 'strength', ['back', 'biceps'], ['table'],
-    ['Test that the table is sturdy first.', 'Lie under it, grip the edge, knees bent.', 'Pull your chest to the edge, lower slowly.'],
-    ['Prvo provjeri da je sto stabilan.', 'Lezi ispod, uhvati rub, koljena savijena.', 'Povuci prsa do ruba, spuštaj polako.'],
-    { youtube: 'table inverted row at home' }),
-  ex('table-row-straight', 'Table row, legs straight', 'Veslanje ispod stola, ispružene noge', 'strength', ['back', 'biceps', 'core'], ['table'],
-    ['Same as the table row, legs straight, body like a plank.'],
-    ['Isto kao veslanje ispod stola, noge ispružene, tijelo kao plank.'],
-    { youtube: 'table inverted row at home' }),
-  ex('table-row-elevated', 'Table row, feet on chair', 'Veslanje ispod stola, noge na stolici', 'strength', ['back', 'biceps', 'core'], ['table', 'chair'],
-    ['Table row with the feet on a chair, body level.'],
-    ['Veslanje ispod stola sa stopalima na stolici, tijelo vodoravno.'],
-    { youtube: 'feet elevated inverted row' }),
-  ex('table-row-one-arm', 'One-arm table row', 'Veslanje ispod stola jednom rukom', 'strength', ['back', 'biceps', 'core'], ['table'],
-    ['Table row with one hand; don\'t let the body twist.'],
-    ['Veslanje ispod stola jednom rukom; ne dozvoli da se tijelo uvrne.'],
-    { perSide: true, youtube: 'one arm inverted row' }),
+  ex('tempo-one-arm-row', 'Slow one-arm dumbbell row', 'Sporo veslanje jednom rukom', 'strength', ['back', 'biceps'], ['dumbbell7', 'chair'],
+    ['One-arm row with the 7 kg dumbbell.', 'Hold 2 s at the top, lower in 4 s.'],
+    ['Veslanje jednom rukom s bučicom od 7 kg.', 'Zadrži 2 s gore, spuštaj 4 s.'],
+    { perSide: true, youtube: 'one arm dumbbell row slow tempo' }),
   ex('dead-hang', 'Dead hang', 'Visenje na šipki', 'strength', ['back', 'forearms', 'shoulders'], ['pullupBar'],
     ['Hang from the bar with straight arms, shoulders active.', 'Breathe and hold.'],
     ['Visi na šipki ispruženih ruku, ramena aktivna.', 'Diši i zadrži.'],
@@ -184,7 +174,7 @@ export const exercises: Exercise[] = [
   ex('dead-bug', 'Dead bug', 'Mrtva buba', 'strength', ['core'], ['mat'],
     ['Lie on your back, arms up, knees over hips.', 'Press the lower back into the floor.', 'Slowly extend the opposite arm and leg, return, switch.'],
     ['Lezi na leđa, ruke gore, koljena iznad kukova.', 'Pritisni donji dio leđa u pod.', 'Polako ispruži suprotnu ruku i nogu, vrati, promijeni.'],
-    { perSide: true }),
+    { perSide: true, alternating: true }),
   ex('plank', 'Plank', 'Plank', 'strength', ['core', 'shoulders'], ['mat'],
     ['Forearms under shoulders, body in a straight line.', 'Squeeze glutes and abs, breathe. Stop when the hips sag.'],
     ['Podlaktice ispod ramena, tijelo u ravnoj liniji.', 'Stisni gluteuse i trbuh, diši. Prekini kad kukovi propadnu.'],
@@ -262,7 +252,7 @@ export const exercises: Exercise[] = [
   ex('worlds-greatest-stretch', 'World\'s greatest stretch', 'Najbolje istezanje na svijetu', 'mobility', ['hips', 'back', 'hamstrings'], ['mat'],
     ['Lunge forward, hand inside the front foot.', 'Rotate the other arm up to the ceiling.', 'Return and switch sides.'],
     ['Iskorak naprijed, ruka s unutrašnje strane prednjeg stopala.', 'Rotiraj drugu ruku prema plafonu.', 'Vrati se i promijeni stranu.'],
-    { perSide: true }),
+    { perSide: true, alternating: true }),
   ex('arm-circles', 'Arm circles', 'Kruženje rukama', 'mobility', ['shoulders'], ['bodyweight'],
     ['Arms out to the sides, small circles growing bigger, both directions.'],
     ['Ruke u stranu, mali krugovi koji postaju veći, u oba smjera.']),

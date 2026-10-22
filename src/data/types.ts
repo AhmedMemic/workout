@@ -7,7 +7,6 @@ export type Equipment =
   | 'ball'
   | 'band'
   | 'chair'
-  | 'table'
   | 'backpack'
   | 'towel'
   | 'broomstick'
@@ -49,6 +48,8 @@ export interface Exercise {
   measure: 'reps' | 'time'
   /** Done per side (reps or seconds are per side). */
   perSide?: boolean
+  /** Per-side reps done alternating left/right in one go, so the player doesn't split it into two sides. */
+  alternating?: boolean
   /** Search phrase for the YouTube how-to link. */
   youtube: string
 }
