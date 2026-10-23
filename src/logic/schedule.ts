@@ -24,6 +24,11 @@ export function planFor(date: ISODate): DayPlan {
   return week[weekday(date)]
 }
 
+/** Planned rest day: an empty one doesn't break the streak. */
+export function isRestDay(date: ISODate): boolean {
+  return planFor(date).kind === 'rest'
+}
+
 export interface ProgramPosition {
   /** 1-based 4-week block. */
   block: number

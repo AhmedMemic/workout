@@ -1,4 +1,4 @@
-import { db, type LoggedSet, type Session } from '../../db/db'
+import { db, type LoggedSet, type Session, type SessionRating } from '../../db/db'
 import { updateDaily, setLevel } from '../../db/queries'
 import { templates, type Slot, type TemplateId } from '../../data/templates'
 import type { ChainId } from '../../data/types'
@@ -26,6 +26,10 @@ export async function saveProgress(id: number, cursor: number, sets: LoggedSet[]
 
 export async function discardSession(id: number): Promise<void> {
   await db.sessions.delete(id)
+}
+
+export async function rateSession(id: number, patch: { rating?: SessionRating; note?: string }): Promise<void> {
+  await db.sessions.update(id, patch)
 }
 
 export interface LevelUp {

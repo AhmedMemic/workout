@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSteps, nextWorkStep, prevWorkStep } from './steps'
+import { buildSteps, nextWorkStep, overviewSteps, prevWorkStep } from './steps'
 
 describe('buildSteps', () => {
   it('strength: warm-up, pairs × sets with rest, grip, cool-down', () => {
@@ -46,5 +46,20 @@ describe('buildSteps', () => {
     const steps = buildSteps('boxingRounds', 1)
     expect(nextWorkStep(steps, 0)).toBe(steps[2])
     expect(nextWorkStep(steps, steps.length - 1)).toBeUndefined()
+  })
+})
+
+describe('overviewSteps', () => {
+  it('lists each exercise once per section, without rests', () => {
+    const list = overviewSteps(buildSteps('strengthA', 3))
+    expect(list.filter((s) => s.type === 'set')).toHaveLength(6) // one per slot, not per set
+    expect(list.some((s) => s.type === 'rest')).toBe(false)
+    expect(list.filter((s) => s.type === 'timed' && s.exerciseId === 'hip-flexor-stretch')).toHaveLength(1)
+  })
+
+  it('collapses rounds', () => {
+    const steps = buildSteps('boxingRounds', 1)
+    const ids = new Set(steps.flatMap((s) => (s.type === 'timed' ? [s.exerciseId] : [])))
+    expect(overviewSteps(steps)).toHaveLength(ids.size)
   })
 })

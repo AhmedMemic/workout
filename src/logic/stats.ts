@@ -6,6 +6,7 @@ import { isDayComplete } from './challenge'
 import { daysInMonth, monthKey, type ISODate } from './dates'
 import { weightAverage } from './goals'
 import type { Levels } from './progression'
+import { isRestDay } from './schedule'
 import { bestStreak } from './streak'
 
 export interface AllData {
@@ -62,7 +63,7 @@ export function computeStats(data: AllData, today: ISODate): BadgeStats {
   return {
     workouts: done.filter((s) => !isDeskReset(s)).length,
     deskResets: data.daily.filter((d) => d.deskReset).length,
-    bestStreak: bestStreak(activeDates(data)),
+    bestStreak: bestStreak(activeDates(data), isRestDay),
     levelUps,
     fullChallengeMonths: fullChallengeMonths(data, today),
     weightLost: weighIns.length && nowAvg !== undefined ? Math.max(0, Math.round((weighIns[0].weightKg! - nowAvg) * 10) / 10) : 0,

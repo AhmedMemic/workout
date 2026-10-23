@@ -132,3 +132,45 @@
   border-color: var(--accent);
   color: var(--on-accent);
 }
+
+.ladderName {
+  flex: 1;
+}
+
+.yourLevel {
+  padding: 2px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.best {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.bestValue {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.historyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+}
+
+.historyList li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--surface-2);
+  font-variant-numeric: tabular-nums;
+}

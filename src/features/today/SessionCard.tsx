@@ -5,6 +5,7 @@ import { Icon } from '../../components/Icon'
 import { useT } from '../../i18n/I18nProvider'
 import { templates, type TemplateId } from '../../data/templates'
 import { templateSize } from '../../data/templateInfo'
+import { OverviewSheet } from './OverviewSheet'
 import styles from './Today.module.css'
 
 interface SessionCardProps {
@@ -16,6 +17,7 @@ interface SessionCardProps {
 export function SessionCard({ options, makeUp, done }: SessionCardProps) {
   const { t, l } = useT()
   const [picked, setPicked] = useState<TemplateId | null>(null)
+  const [overview, setOverview] = useState(false)
 
   if (options.length === 0) {
     return (
@@ -59,10 +61,16 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
           ))}
         </Chips>
       )}
-      <Link to={`/workout/${id}`} className={buttonClass(isDone ? 'secondary' : 'primary', true)}>
-        <Icon name="play" size={18} />
-        {isDone ? t('today.again') : t('today.start')}
-      </Link>
+      <div className={styles.sessionButtons}>
+        <button type="button" className={buttonClass('secondary')} onClick={() => setOverview(true)}>
+          <Icon name="list" size={18} /> {t('today.overview')}
+        </button>
+        <Link to={`/workout/${id}`} className={buttonClass(isDone ? 'secondary' : 'primary', true)}>
+          <Icon name="play" size={18} />
+          {isDone ? t('today.again') : t('today.start')}
+        </Link>
+      </div>
+      <OverviewSheet templateId={id} open={overview} onClose={() => setOverview(false)} />
     </Card>
   )
 }

@@ -26,7 +26,12 @@ export interface Session {
   sets: LoggedSet[]
   /** Player position, so an unfinished session can resume. */
   cursor?: number
+  /** How it felt, from 1 (very easy) to 5 (too hard). */
+  rating?: SessionRating
+  note?: string
 }
+
+export type SessionRating = 1 | 2 | 3 | 4 | 5
 
 export interface Level {
   chain: ChainId

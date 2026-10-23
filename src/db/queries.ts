@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, type ChallengeDay, type CornerDB, type DailyLog, type Goal } from './db'
+import { db, type ChallengeDay, type CornerDB, type DailyLog, type Goal, type LoggedSet, type Session } from './db'
 import { challengeIdeas, starterChallenge } from '../data/challenges'
 import type { TemplateId } from '../data/templates'
 import type { ChainId } from '../data/types'
@@ -41,6 +41,21 @@ export function useDoneByDate(to: ISODate, days = 2): Map<ISODate, TemplateId[]>
     for (const s of rows) if (s.status === 'done') map.set(s.date, [...(map.get(s.date) ?? []), s.templateId])
     return map
   }, [to, days])
+}
+
+export function useDoneSessions(): Session[] | undefined {
+  return useLiveQuery(() => db.sessions.where('status').equals('done').toArray(), [])
+}
+
+/**
+ * Every set from finished sessions (personal records compare against these), leaving out
+ * the session in progress, which still needs it after it's marked done for the summary.
+ */
+export function useDoneSets(exceptId?: number): LoggedSet[] | undefined {
+  return useLiveQuery(async () => {
+    const done = await db.sessions.where('status').equals('done').toArray()
+    return done.filter((s) => s.id !== exceptId).flatMap((s) => s.sets)
+  }, [exceptId])
 }
 
 export function useActiveSession() {

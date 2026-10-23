@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { addDays, daysInMonth, diffDays, startOfWeek, weekday } from './dates'
-import { planFor, programPosition, sessionOptionsFor, setsFor } from './schedule'
+import { isRestDay, planFor, programPosition, sessionOptionsFor, setsFor } from './schedule'
 import { levelOf, nextLevel, resolveSlot, targetFor } from './progression'
 import { bestStreak, currentStreak } from './streak'
 import { isDayComplete, targetForDay } from './challenge'
@@ -10,6 +10,9 @@ import { currentValue, goalProgress, isReached } from './goals'
 import { testStatus } from './retest'
 import { badges, isEarned } from './badges'
 import { weekReview } from './weekReview'
+import { exerciseHistory, recordFor, sessionRecords } from './records'
+import { weekProgress } from './weekProgress'
+import type { LoggedSet, Session } from '../db/db'
 
 // 2026-10-26 is a Monday
 const MON = '2026-10-26'
@@ -87,6 +90,20 @@ describe('streak', () => {
 
   it('finds the best run', () => {
     expect(bestStreak(new Set([MON, addDays(MON, 1), addDays(MON, 5)]))).toBe(2)
+  })
+
+  it('steps over an empty rest day without counting it', () => {
+    const SAT = addDays(MON, -2)
+    const days = new Set([addDays(MON, -3), SAT, MON]) // Fri, Sat, (Sun rest), Mon
+    expect(currentStreak(days, MON, isRestDay)).toBe(3)
+    expect(currentStreak(days, MON)).toBe(1)
+    expect(currentStreak(new Set([SAT]), MON, isRestDay)).toBe(1) // Monday not over yet
+    expect(currentStreak(new Set([SAT]), addDays(MON, 1), isRestDay)).toBe(0)
+    expect(bestStreak(days, isRestDay)).toBe(3)
+    // An active rest day still counts.
+    expect(bestStreak(new Set([SAT, addDays(MON, -1), MON]), isRestDay)).toBe(3)
+    // Only planned rest days bridge: Tuesday is not one.
+    expect(bestStreak(new Set([MON, addDays(MON, 2)]), isRestDay)).toBe(1)
   })
 })
 
@@ -184,5 +201,73 @@ describe('week review', () => {
       daily,
     }
     expect(weekReview(data, '2026-10-26', 7000).focus).toEqual({ key: 'keepGoing' })
+  })
+})
+
+describe('personal records', () => {
+  const set = (exerciseId: string, reps: number): LoggedSet => ({ exerciseId, setNo: 1, reps })
+  const history = [set('pushup', 10), set('pushup', 12), set('squat', 15)]
+
+  it('needs an earlier set to beat', () => {
+    expect(recordFor(set('pushup', 13), history)).toEqual({ exerciseId: 'pushup', value: 13, unit: 'reps', previous: 12 })
+    expect(recordFor(set('pushup', 12), history)).toBeUndefined()
+    expect(recordFor(set('lunge', 20), history)).toBeUndefined() // first try
+  })
+
+  it('counts a record once per session unless it goes higher', () => {
+    const today = [set('pushup', 13)]
+    expect(recordFor(set('pushup', 13), history, today)).toBeUndefined()
+    expect(recordFor(set('pushup', 14), history, today)?.previous).toBe(12)
+    expect(sessionRecords([set('pushup', 13), set('pushup', 14), set('squat', 10)], history)).toEqual([
+      { exerciseId: 'pushup', value: 14, unit: 'reps', previous: 12 },
+    ])
+  })
+
+  it('reads seconds for timed sets', () => {
+    const hold = (seconds: number): LoggedSet => ({ exerciseId: 'plank', setNo: 1, seconds })
+    expect(recordFor(hold(45), [hold(40)])?.unit).toBe('seconds')
+  })
+})
+
+describe('week review feel', () => {
+  it('puts two too-hard workouts first', () => {
+    const s = (date: string, rating?: 5): Session => ({ date, templateId: 'strengthA', status: 'done', startedAt: 0, sets: [], rating })
+    const data = { sessions: [s('2026-10-26', 5), s('2026-10-28', 5), s('2026-10-30')], daily: [], tests: [], goals: [], levels: {}, challenges: [], challengeDays: [] }
+    expect(weekReview(data, '2026-10-26', 7000).focus).toEqual({ key: 'tooHard', n: 2 })
+    data.sessions[1].rating = undefined
+    expect(weekReview(data, '2026-10-26', 7000).focus.key).not.toBe('tooHard')
+  })
+})
+
+describe('exercise history', () => {
+  const session = (date: string, startedAt: number, sets: LoggedSet[], status: Session['status'] = 'done'): Session => ({
+    date, templateId: 'strengthA', status, startedAt, sets,
+  })
+  it('lists sessions newest first with the best set', () => {
+    const sessions = [
+      session('2026-10-28', 2, [{ exerciseId: 'pushup', setNo: 2, reps: 9 }, { exerciseId: 'pushup', setNo: 1, reps: 11 }]),
+      session('2026-10-26', 1, [{ exerciseId: 'pushup', setNo: 1, reps: 10 }, { exerciseId: 'squat', setNo: 1, reps: 20 }]),
+      session('2026-10-30', 3, [{ exerciseId: 'pushup', setNo: 1, reps: 30 }], 'active'),
+    ]
+    expect(exerciseHistory(sessions, 'pushup')).toEqual({
+      unit: 'reps',
+      best: { value: 11, date: '2026-10-28' },
+      days: [
+        { date: '2026-10-28', values: [11, 9] },
+        { date: '2026-10-26', values: [10] },
+      ],
+    })
+    expect(exerciseHistory(sessions, 'lunge')).toBeUndefined()
+  })
+})
+
+describe('week progress', () => {
+  const s = (date: string, templateId: Session['templateId']): Session => ({ date, templateId, status: 'done', startedAt: 0, sets: [] })
+  it('marks each planned day, with make-ups and without desk resets', () => {
+    // Mon strength made up on Tue, Tue's own slot counts too; Wed only a desk reset
+    const sessions = [s(addDays(MON, 1), 'strengthA'), s(addDays(MON, 2), 'deskReset')]
+    const w = weekProgress(sessions, addDays(MON, 3))
+    expect(w.days.map((d) => d.state)).toEqual(['done', 'done', 'missed', 'today', 'upcoming', 'upcoming', 'rest'])
+    expect(w).toMatchObject({ done: 2, planned: 6 })
   })
 })

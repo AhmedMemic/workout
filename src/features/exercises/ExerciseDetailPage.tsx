@@ -7,6 +7,10 @@ import { useT } from '../../i18n/I18nProvider'
 import { exerciseById, youtubeUrl } from '../../data/exercises'
 import { findInChains } from '../../data/chains'
 import { equipmentLabels, muscleLabels } from '../../data/labels'
+import { useDoneSessions, useLevels } from '../../db/queries'
+import { formatShort } from '../../logic/dates'
+import { levelOf } from '../../logic/progression'
+import { exerciseHistory } from '../../logic/records'
 import styles from './Exercises.module.css'
 
 export function ExerciseDetailPage() {
@@ -18,6 +22,10 @@ export function ExerciseDetailPage() {
 
   const otherLang = lang === 'en' ? 'bs' : 'en'
   const ladder = findInChains(exercise.id)
+  const sessions = useDoneSessions()
+  const levels = useLevels()
+  const history = sessions && exerciseHistory(sessions, exercise.id)
+  const yourStep = ladder && levels ? levelOf(ladder.chain.id, levels) : undefined
 
   return (
     <Page
@@ -37,6 +45,26 @@ export function ExerciseDetailPage() {
           <Chip key={eq}>{l(equipmentLabels[eq])}</Chip>
         ))}
       </Chips>
+
+      {history && (
+        <Card>
+          <div className="label">{t('exercise.history')}</div>
+          <div className={styles.best}>
+            <span className={styles.bestValue}>
+              {history.best.value} {t(history.unit === 'seconds' ? 'unit.seconds' : 'unit.reps')}
+            </span>
+            <span className="muted">{t('exercise.best', { date: formatShort(history.best.date, lang) })}</span>
+          </div>
+          <ul className={styles.historyList}>
+            {history.days.slice(0, 8).map((d) => (
+              <li key={d.date}>
+                <span className="muted">{formatShort(d.date, lang)}</span>
+                <span>{d.values.join(' · ')}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card>
         <div className="label">{t('exercise.steps')}</div>
@@ -68,7 +96,8 @@ export function ExerciseDetailPage() {
                   aria-current={stepId === exercise.id ? 'step' : undefined}
                 >
                   <span className={styles.ladderNum}>{i + 1}</span>
-                  {l(exerciseById[stepId].name)}
+                  <span className={styles.ladderName}>{l(exerciseById[stepId].name)}</span>
+                  {i === yourStep && <span className={styles.yourLevel}>{t('exercise.yourLevel')}</span>}
                 </Link>
               </li>
             ))}

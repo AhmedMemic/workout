@@ -10,6 +10,7 @@ const STRENGTH: TemplateId[] = ['strengthA', 'strengthB', 'strengthC']
 const DESK: TemplateId[] = ['deskReset', 'deskResetShort']
 
 export type Focus =
+  | { key: 'tooHard'; n: number }
   | { key: 'missedDay'; day: number }
   | { key: 'strength'; done: number }
   | { key: 'deskReset' }
@@ -82,8 +83,10 @@ export function weekReview(data: AllData, weekStart: ISODate, stepGoal: number):
   const missedNow = missedStrengthDays(data, weekStart)
   const missedBefore = missedStrengthDays(data, lastWeekStart)
   const repeat = missedNow.find((d) => missedBefore.includes(d))
+  const tooHard = thisWeek.filter((s) => s.rating === 5).length
   let focus: Focus
-  if (repeat !== undefined) focus = { key: 'missedDay', day: repeat }
+  if (tooHard >= 2) focus = { key: 'tooHard', n: tooHard }
+  else if (repeat !== undefined) focus = { key: 'missedDay', day: repeat }
   else if (strength < 3) focus = { key: 'strength', done: strength }
   else if (deskResets < 3) focus = { key: 'deskReset' }
   else if (food < 0.5) focus = { key: 'food' }

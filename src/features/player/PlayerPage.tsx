@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Button, buttonClass } from '../../components/ui'
 import { Icon } from '../../components/Icon'
@@ -8,16 +8,18 @@ import { templates, type TemplateId } from '../../data/templates'
 import { exerciseById } from '../../data/exercises'
 import type { LoggedSet, Session } from '../../db/db'
 import { saveSetting, useSettings } from '../../db/settings'
-import { useLevels } from '../../db/queries'
+import { useDoneSets, useLevels } from '../../db/queries'
 import { today } from '../../logic/dates'
 import { programPosition, setsFor } from '../../logic/schedule'
 import { formatClock, useElapsed } from '../../hooks/useCountdown'
 import { configureVoice, say, unlockAudio, useWakeLock } from '../../hooks/device'
 import { resolveSlot, targetFor, type Levels } from '../../logic/progression'
+import { recordFor, sessionRecords, type PersonalRecord } from '../../logic/records'
 import { buildSteps, nextWorkStep, prevWorkStep, type Step } from './steps'
 import { discardSession, finishSession, saveProgress, startOrResume, type LevelUp } from './session'
 import { RepsView, RestView, SetView, TimedView, WalkView, describeStep, sideKey } from './views'
 import { StepList } from './StepList'
+import { FeelCard } from './FeelCard'
 import styles from './Player.module.css'
 
 type Phase = 'loading' | 'intro' | 'run' | 'summary'
@@ -44,6 +46,7 @@ function Player({ templateId }: { templateId: TemplateId }) {
 
   const [phase, setPhase] = useState<Phase>('loading')
   const [session, setSession] = useState<Session | null>(null)
+  const history = useDoneSets(session?.id)
   const [cursor, setCursor] = useState(0)
   const [side, setSide] = useState<1 | 2>(1)
   const [listOpen, setListOpen] = useState(false)
@@ -52,6 +55,9 @@ function Player({ templateId }: { templateId: TemplateId }) {
   const [leaving, setLeaving] = useState(false)
   const [levelUps, setLevelUps] = useState<LevelUp[]>([])
   const [endedAt, setEndedAt] = useState(0)
+  const [record, setRecord] = useState<PersonalRecord | null>(null)
+  // spoken before the next cue, so the cue doesn't cut it off
+  const recordCue = useRef(false)
 
   const setsPerExercise = settings ? setsFor(programPosition(settings.startDate, today())) : 2
   const steps = useMemo(() => buildSteps(templateId, setsPerExercise), [templateId, setsPerExercise])
@@ -97,10 +103,18 @@ function Player({ templateId }: { templateId: TemplateId }) {
     return [title, cueSide && t(sideKey(cueSide)), amount].filter(Boolean).join('. ')
   }, [phase, step, levels, steps, cursor, cueSide, t, l])
   useEffect(() => {
-    if (cue) say(cue)
-  }, [cue])
+    if (!cue) return
+    say(recordCue.current ? `${t('voice.record')} ${cue}` : cue)
+    recordCue.current = false
+  }, [cue, t])
 
-  if (phase === 'loading' || !session || !levels || !settings) return null
+  useEffect(() => {
+    if (!record) return
+    const id = setTimeout(() => setRecord(null), 5000)
+    return () => clearTimeout(id)
+  }, [record])
+
+  if (phase === 'loading' || !session || !levels || !settings || !history) return null
 
   const finish = async (walkMin?: number, finalSets = sets) => {
     const ups = await finishSession(session, finalSets, steps, levels, walkMin)
@@ -143,7 +157,13 @@ function Player({ templateId }: { templateId: TemplateId }) {
   /** Logging a set again (after going back) replaces the earlier entry. */
   const logSet = (set: LoggedSet) => {
     const same = (x: LoggedSet) => x.slotId === set.slotId && x.setNo === set.setNo && x.side === set.side
-    advance([...sets.filter((x) => !same(x)), set])
+    const earlier = sets.filter((x) => !same(x))
+    const pr = recordFor(set, history, earlier)
+    if (pr) {
+      recordCue.current = true
+      setRecord(pr)
+    }
+    advance([...earlier, set])
   }
 
   const readyFor = (index: number) => (steps[index - 1]?.type === 'rest' ? 0 : settings.readySec)
@@ -191,6 +211,7 @@ function Player({ templateId }: { templateId: TemplateId }) {
   if (phase === 'summary') {
     const totalReps = sets.reduce((sum, s) => sum + (s.reps ?? 0), 0)
     const duration = Math.round((endedAt - (runStart ?? session.startedAt)) / 1000)
+    const records = sessionRecords(sets, history)
     return (
       <div className={styles.screen}>
         <div className={styles.header}>
@@ -221,6 +242,17 @@ function Player({ templateId }: { templateId: TemplateId }) {
             {levelUps.map((u) => (
               <div key={u.chain} className={styles.upNextName}>
                 {t('player.levelUp', { name: l(exerciseById[u.exerciseId].name) })}
+              </div>
+            ))}
+          </div>
+        )}
+        <FeelCard sessionId={session.id!} />
+        {records.length > 0 && (
+          <div className={styles.upNext}>
+            <div className="label">{t('player.record')}</div>
+            {records.map((r) => (
+              <div key={r.exerciseId} className={styles.upNextName}>
+                <RecordLine record={r} />
               </div>
             ))}
           </div>
@@ -281,6 +313,16 @@ function Player({ templateId }: { templateId: TemplateId }) {
       {step.type === 'rest' && <RestView key={viewKey} step={step} next={next} levels={levels} onDone={() => advance()} />}
       {step.type === 'walk' && <WalkView key={viewKey} step={step} startedAt={runStart ?? Date.now()} onFinish={(m) => void finish(m)} />}
 
+      {record && (
+        <div className={styles.recordBanner} role="status">
+          <Icon name="flame" size={20} />
+          <div>
+            <div className={styles.recordTitle}>{t('player.record')}</div>
+            <RecordLine record={record} />
+          </div>
+        </div>
+      )}
+
       {step.type !== 'walk' && (
         <div className={styles.controls}>
           <button
@@ -339,5 +381,19 @@ function Player({ templateId }: { templateId: TemplateId }) {
         </Button>
       </Sheet>
     </div>
+  )
+}
+
+function RecordLine({ record }: { record: PersonalRecord }) {
+  const { t, l } = useT()
+  const unit = t(record.unit === 'seconds' ? 'unit.seconds' : 'unit.reps')
+  return (
+    <>
+      {t('player.recordLine', {
+        name: l(exerciseById[record.exerciseId].name),
+        n: `${record.value} ${unit}`,
+        was: record.previous,
+      })}
+    </>
   )
 }

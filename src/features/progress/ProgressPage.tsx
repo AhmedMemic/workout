@@ -13,6 +13,7 @@ import { deleteGoal, markReachedGoals, useAllData } from '../../db/queries'
 import { addDays, formatDay, formatShort, startOfWeek, today as todayISO, weekday } from '../../logic/dates'
 import { weekReview } from '../../logic/weekReview'
 import { WeekReviewCard } from '../today/WeekReviewCard'
+import { feelKey } from '../player/FeelCard'
 import { currentValue, goalProgress, lowerIsBetter, weightAverage } from '../../logic/goals'
 import { testStatus } from '../../logic/retest'
 import { computeStats } from '../../logic/stats'
@@ -276,10 +277,15 @@ export function ProgressPage() {
             />
             <ul className={styles.list}>
               {done.slice(0, 10).map((s) => (
-                <li key={s.id}>
-                  <span className="muted">{formatDay(s.date, lang)}</span>
-                  <span className={styles.grow}>{l(templates[s.templateId].name)}</span>
-                  <span className="muted">{s.endedAt ? formatClock(Math.round((s.endedAt - s.startedAt) / 1000)) : ''}</span>
+                <li key={s.id} className={styles.sessionRow}>
+                  <div className={styles.sessionTop}>
+                    <span className="muted">{formatDay(s.date, lang)}</span>
+                    <span className={styles.grow}>{l(templates[s.templateId].name)}</span>
+                    <span className="muted">{s.endedAt ? formatClock(Math.round((s.endedAt - s.startedAt) / 1000)) : ''}</span>
+                  </div>
+                  {(s.rating || s.note) && (
+                    <div className="muted">{[s.rating && t(feelKey(s.rating)), s.note].filter(Boolean).join(' · ')}</div>
+                  )}
                 </li>
               ))}
             </ul>

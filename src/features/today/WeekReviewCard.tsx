@@ -14,7 +14,9 @@ export function WeekReviewCard({ review, onDismiss }: { review: WeekReview; onDi
       ? t('review.focus.missedDay', { day: weekdayLong(focus.day, lang) })
       : focus.key === 'strength'
         ? t('review.focus.strength', { n: focus.done })
-        : t(`review.focus.${focus.key}` as MessageKey)
+        : focus.key === 'tooHard'
+          ? t('review.focus.tooHard', { n: focus.n })
+          : t(`review.focus.${focus.key}` as MessageKey)
 
   const rows: [string, string][] = [
     [t('review.strength'), `${review.strength} / ${review.strengthPlanned}`],

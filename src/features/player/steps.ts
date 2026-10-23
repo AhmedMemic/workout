@@ -132,3 +132,15 @@ export function nextWorkStep(steps: Step[], from: number): Step | undefined {
   for (let i = from + 1; i < steps.length; i++) if (steps[i].type !== 'rest') return steps[i]
   return undefined
 }
+
+/** One entry per exercise (per slot for strength sets) and section, for the session overview. */
+export function overviewSteps(steps: Step[]): Step[] {
+  const seen = new Set<string>()
+  return steps.filter((s) => {
+    if (s.type === 'rest') return false
+    const key = `${s.section}:${s.type === 'set' ? s.slot.id : s.type === 'walk' ? 'walk' : s.exerciseId}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}

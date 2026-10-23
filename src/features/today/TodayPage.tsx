@@ -18,11 +18,12 @@ import {
   useDoneByDate,
 } from '../../db/queries'
 import { dayOfMonth, daysInMonth, formatDay, formatMonth, formatNumber, monthKey, today as todayISO } from '../../logic/dates'
-import { programPosition, sessionOptionsFor } from '../../logic/schedule'
+import { isRestDay, programPosition, sessionOptionsFor } from '../../logic/schedule'
 import { currentStreak } from '../../logic/streak'
 import { isDayComplete } from '../../logic/challenge'
 import { SessionCard } from './SessionCard'
 import { Highlights } from './Highlights'
+import { WeekStrip } from './WeekStrip'
 import { ChallengeSheet, DeskResetSheet, FoodSheet, NumberSheet } from './sheets'
 import styles from './Today.module.css'
 
@@ -46,7 +47,7 @@ export function TodayPage() {
 
   const pos = programPosition(settings.startDate, date)
   const { options, makeUp } = sessionOptionsFor(date, doneByDate)
-  const streak = active ? currentStreak(active, date) : 0
+  const streak = active ? currentStreak(active, date, isRestDay) : 0
 
   const todayDone = challengeDays?.get(date) ?? []
   const tasks = challenge?.tasks ?? []
@@ -84,6 +85,8 @@ export function TodayPage() {
       <Highlights date={date} settings={settings} />
 
       <SessionCard options={options} makeUp={makeUp} done={doneByDate.get(date) ?? []} />
+
+      <WeekStrip date={date} />
 
       <section className={styles.section}>
         <div className="label">{t('today.basics')}</div>
