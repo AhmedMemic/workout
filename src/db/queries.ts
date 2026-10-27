@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, type ChallengeDay, type CornerDB, type DailyLog, type Goal, type LoggedSet, type Session } from './db'
+import { db, type ChallengeDay, type CornerDB, type DailyLog, type Goal, type LoggedSet, type Session, type Track } from './db'
 import { challengeIdeas, starterChallenge } from '../data/challenges'
 import type { TemplateId } from '../data/templates'
 import type { ChainId } from '../data/types'
@@ -8,6 +8,7 @@ import { isDayComplete } from '../logic/challenge'
 import type { Levels } from '../logic/progression'
 import type { AllData } from '../logic/stats'
 import { currentValue, isReached } from '../logic/goals'
+import { trackName } from '../logic/music'
 
 // ── Daily log ──────────────────────────────────────────────────
 
@@ -166,4 +167,22 @@ export async function markReachedGoals(data: AllData, date: ISODate): Promise<vo
       await db.goals.update(g.id!, { reachedAt: date })
     }
   }
+}
+
+// ── Music ──────────────────────────────────────────────────────
+
+export function useTracks(): Track[] | undefined {
+  return useLiveQuery(() => db.tracks.orderBy('id').toArray(), [])
+}
+
+/** Saves songs picked from the phone. The files are copied into the app, so they play offline. */
+export async function addTracks(files: File[]): Promise<number> {
+  const audio = files.filter((f) => f.type.startsWith('audio/') || /\.(mp3|m4a|aac|ogg|opus|wav|flac)$/i.test(f.name))
+  const now = Date.now()
+  await db.tracks.bulkAdd(audio.map((f, i) => ({ name: trackName(f.name), size: f.size, blob: f, addedAt: now + i })))
+  return audio.length
+}
+
+export async function deleteTrack(id: number): Promise<void> {
+  await db.tracks.delete(id)
 }

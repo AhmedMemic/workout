@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { duck } from './music'
 
 /** Keeps the screen on while mounted (where the browser supports it). */
 export function useWakeLock(active: boolean) {
@@ -83,7 +84,10 @@ const voiceState = { enabled: true, lang: 'en' as 'en' | 'bs' }
 export function configureVoice(enabled: boolean, lang: 'en' | 'bs') {
   voiceState.enabled = enabled
   voiceState.lang = lang
-  if (!enabled) window.speechSynthesis?.cancel()
+  if (!enabled) {
+    window.speechSynthesis?.cancel()
+    duck(false)
+  }
 }
 
 /** Phones rarely ship a Bosnian voice; Croatian and Serbian read Bosnian latin text well. */
@@ -108,6 +112,13 @@ export function say(text: string, interrupt = true) {
     if (voice) u.voice = voice
     u.lang = voice?.lang ?? (voiceState.lang === 'bs' ? 'bs-BA' : 'en-US')
     u.rate = 1
+    // a cancelled cue ends too, so only bring the music back once nothing is queued
+    const restore = () => setTimeout(() => !synth.speaking && !synth.pending && duck(false), 150)
+    u.onend = restore
+    u.onerror = restore
+    duck(true)
+    // some speech engines never fire onend; don't leave the music quiet
+    setTimeout(restore, 15000)
     synth.speak(u)
   } catch {
     // speech not available

@@ -8,6 +8,8 @@ export interface Settings {
   stepGoal: number
   playlistUrl: string
   walkoutUrl: string
+  /** Play songs added to the app in random order. */
+  musicShuffle: boolean
   /** Spoken exercise names and cues in the player. */
   voice: boolean
   /** Get-ready countdown before timed work, in seconds. */
@@ -29,6 +31,7 @@ export const defaultSettings = (): Settings => ({
   stepGoal: 7000,
   playlistUrl: '',
   walkoutUrl: '',
+  musicShuffle: true,
   voice: true,
   readySec: 10,
   retestSkipped: '',

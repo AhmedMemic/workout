@@ -6,6 +6,7 @@ import { useT } from '../../i18n/I18nProvider'
 import { saveSetting, useSettings, type Settings } from '../../db/settings'
 import { backUpNow, canShareBackup, importBackup, parseBackup } from '../../db/backup'
 import { formatDay } from '../../logic/dates'
+import { MusicLibrary } from './MusicLibrary'
 import styles from './Me.module.css'
 
 type TextKey = 'playlistUrl' | 'walkoutUrl'
@@ -108,8 +109,10 @@ export function MePage() {
         </Chips>
       </Card>
 
+      <MusicLibrary />
+
       <Card>
-        <div className="label">{t('me.music')}</div>
+        <div className="label">{t('me.links')}</div>
         {textField('playlistUrl', t('me.playlist'))}
         {textField('walkoutUrl', t('me.walkout'))}
       </Card>

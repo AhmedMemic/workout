@@ -87,6 +87,15 @@ export interface Goal {
   reachedAt?: ISODate
 }
 
+/** A song the user added from their phone, played by the in-app music player. */
+export interface Track {
+  id?: number
+  name: string
+  size: number
+  blob: Blob
+  addedAt: number
+}
+
 export interface SettingRow {
   key: string
   value: unknown
@@ -101,6 +110,7 @@ export class CornerDB extends Dexie {
   challengeDays!: Table<ChallengeDay, [string, string]>
   tests!: Table<TestResult, number>
   goals!: Table<Goal, number>
+  tracks!: Table<Track, number>
 
   constructor(name = 'corner') {
     super(name)
@@ -116,9 +126,14 @@ export class CornerDB extends Dexie {
     this.version(2).stores({
       goals: '++id, metric',
     })
+    this.version(3).stores({
+      tracks: '++id',
+    })
   }
 }
 
 export const db = new CornerDB()
 
+// `tracks` is left out on purpose: audio files would make the JSON backup huge, and
+// importing a backup should not wipe the songs on this device.
 export const tableNames = ['settings', 'sessions', 'levels', 'daily', 'challenges', 'challengeDays', 'tests', 'goals'] as const

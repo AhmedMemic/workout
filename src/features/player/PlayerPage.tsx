@@ -8,11 +8,12 @@ import { templates, type TemplateId } from '../../data/templates'
 import { exerciseById } from '../../data/exercises'
 import type { LoggedSet, Session } from '../../db/db'
 import { saveSetting, useSettings } from '../../db/settings'
-import { useDoneSets, useLevels } from '../../db/queries'
+import { useDoneSets, useLevels, useTracks } from '../../db/queries'
 import { today } from '../../logic/dates'
 import { programPosition, setsFor } from '../../logic/schedule'
 import { formatClock, useElapsed } from '../../hooks/useCountdown'
 import { configureVoice, say, unlockAudio, useWakeLock } from '../../hooks/device'
+import { playTracks, stop as stopMusic, useMusic } from '../../hooks/music'
 import { resolveSlot, targetFor, type Levels } from '../../logic/progression'
 import { recordFor, sessionRecords, type PersonalRecord } from '../../logic/records'
 import { buildSteps, nextWorkStep, prevWorkStep, type Step } from './steps'
@@ -20,7 +21,9 @@ import { discardSession, finishSession, saveProgress, startOrResume, type LevelU
 import { RepsView, RestView, SetView, TimedView, WalkView, describeStep, sideKey } from './views'
 import { StepList } from './StepList'
 import { FeelCard } from './FeelCard'
+import { MusicSheet, randomStart } from './MusicSheet'
 import styles from './Player.module.css'
+import musicStyles from './Music.module.css'
 
 type Phase = 'loading' | 'intro' | 'run' | 'summary'
 
@@ -42,6 +45,8 @@ function Player({ templateId }: { templateId: TemplateId }) {
   const navigate = useNavigate()
   const settings = useSettings()
   const levels = useLevels()
+  const tracks = useTracks()
+  const music = useMusic()
   const template = templates[templateId]
 
   const [phase, setPhase] = useState<Phase>('loading')
@@ -50,6 +55,7 @@ function Player({ templateId }: { templateId: TemplateId }) {
   const [cursor, setCursor] = useState(0)
   const [side, setSide] = useState<1 | 2>(1)
   const [listOpen, setListOpen] = useState(false)
+  const [musicOpen, setMusicOpen] = useState(false)
   const [sets, setSets] = useState<LoggedSet[]>([])
   const [runStart, setRunStart] = useState<number | null>(null)
   const [leaving, setLeaving] = useState(false)
@@ -77,6 +83,9 @@ function Player({ templateId }: { templateId: TemplateId }) {
       cancelled = true
     }
   }, [templateId])
+
+  // the in-app music belongs to the workout; leaving the player stops it
+  useEffect(() => () => stopMusic(), [])
 
   useWakeLock(phase === 'run')
   const elapsed = useElapsed(phase === 'run' ? runStart : null)
@@ -114,7 +123,12 @@ function Player({ templateId }: { templateId: TemplateId }) {
     return () => clearTimeout(id)
   }, [record])
 
-  if (phase === 'loading' || !session || !levels || !settings || !history) return null
+  if (phase === 'loading' || !session || !levels || !settings || !history || !tracks) return null
+
+  const nowPlaying = music.queue[music.index]
+  const musicSheet = (
+    <MusicSheet open={musicOpen} onClose={() => setMusicOpen(false)} tracks={tracks} shuffle={settings.musicShuffle} />
+  )
 
   const finish = async (walkMin?: number, finalSets = sets) => {
     const ups = await finishSession(session, finalSets, steps, levels, walkMin)
@@ -183,6 +197,18 @@ function Player({ templateId }: { templateId: TemplateId }) {
           {template.kind === 'strength' && <div className="muted">{t('player.setsThisWeek', { n: setsPerExercise })}</div>}
         </div>
         <div className={styles.footer}>
+          {tracks.length > 0 && (
+            <Button
+              variant="secondary"
+              block
+              onClick={() => {
+                if (!nowPlaying) playTracks(tracks, randomStart(tracks, settings.musicShuffle), settings.musicShuffle)
+                else setMusicOpen(true)
+              }}
+            >
+              <Icon name="music" size={18} /> {nowPlaying ? nowPlaying.name : t('player.myMusic')}
+            </Button>
+          )}
           {settings.playlistUrl && (
             <a href={settings.playlistUrl} target="_blank" rel="noreferrer" className={buttonClass('secondary', true)}>
               <Icon name="music" size={18} /> {t('player.playlist')}
@@ -204,6 +230,7 @@ function Player({ templateId }: { templateId: TemplateId }) {
             <Icon name="play" size={18} /> {t('player.startWorkout')}
           </Button>
         </div>
+        {musicSheet}
       </div>
     )
   }
@@ -278,6 +305,16 @@ function Player({ templateId }: { templateId: TemplateId }) {
         </button>
         <div className={styles.title}>{l(template.name)}</div>
         <div className={styles.topRight}>
+          {tracks.length > 0 && (
+            <button
+              type="button"
+              className={`${styles.iconButton} ${music.playing ? musicStyles.playing : ''}`}
+              onClick={() => setMusicOpen(true)}
+              aria-label={t('player.musicTitle')}
+            >
+              <Icon name="music" size={20} />
+            </button>
+          )}
           <button
             type="button"
             className={styles.iconButton}
@@ -353,6 +390,8 @@ function Player({ templateId }: { templateId: TemplateId }) {
           goTo(i)
         }}
       />
+
+      {musicSheet}
 
       <Sheet open={leaving} onClose={() => setLeaving(false)} title={t('player.leaveTitle')}>
         <div className="muted">{t('player.leaveText')}</div>

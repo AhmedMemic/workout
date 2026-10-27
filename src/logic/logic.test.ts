@@ -12,6 +12,7 @@ import { badges, isEarned } from './badges'
 import { weekReview } from './weekReview'
 import { exerciseHistory, recordFor, sessionRecords } from './records'
 import { weekProgress } from './weekProgress'
+import { playOrder, trackName } from './music'
 import type { LoggedSet, Session } from '../db/db'
 
 // 2026-10-26 is a Monday
@@ -269,5 +270,24 @@ describe('week progress', () => {
     const w = weekProgress(sessions, addDays(MON, 3))
     expect(w.days.map((d) => d.state)).toEqual(['done', 'done', 'missed', 'today', 'upcoming', 'upcoming', 'rest'])
     expect(w).toMatchObject({ done: 2, planned: 6 })
+  })
+})
+
+describe('music', () => {
+  it('names songs from their file names', () => {
+    expect(trackName('03 - Eye of the Tiger.mp3')).toBe('Eye of the Tiger')
+    expect(trackName('Dino_Merlin_Burek.m4a')).toBe('Dino Merlin Burek')
+    expect(trackName('2pac.mp3')).toBe('2pac')
+  })
+
+  it('plays in order from the tapped song, wrapping around', () => {
+    expect(playOrder(4, 2)).toEqual([2, 3, 0, 1])
+    expect(playOrder(0)).toEqual([])
+  })
+
+  it('shuffles every song once, starting with the tapped one', () => {
+    const order = playOrder(5, 3, true, () => 0.5)
+    expect(order[0]).toBe(3)
+    expect([...order].sort()).toEqual([0, 1, 2, 3, 4])
   })
 })
