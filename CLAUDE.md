@@ -64,11 +64,13 @@ src/
 - **Equipment:** 2×5 kg and 1×7 kg dumbbells, a stability ball, grip tools, a pedal resistance band, chair, wall, doorframe. No mat and no usable table, so no table exercises. A pull-up bar is optional.
 - **Player:** timed work has a get-ready countdown (`readySec` setting, skipped right after a rest) and stops at zero with a beep. Voice cues use the Web Speech API (`say()` in `hooks/device.ts`), falling back to a Croatian or Serbian voice for Bosnian.
 - **Apartment:** exercises must be low-noise, so no jumping.
+- **Balance:** Ahmed's single-leg balance is weak. Single-leg strength work starts supported (wall or doorframe): the `lunge` and `singleLegHinge` ladders start at the supported version. Balance practice is in the warm-up and desk resets, and the re-tests include a one-leg stand per side.
 - **Goals** (`goals` table, schema v2) track weight (7-day average) or a test metric, from a start value to a target; a goal is stamped `reachedAt` once and stays reached.
 - **Re-tests:** baseline in the first 4-week window from `startDate`, then one per window (`logic/retest.ts`); Today shows a reminder until a test is logged or skipped.
 - **Milestones** are computed from data, never stored (`logic/badges.ts` + `logic/stats.ts`); `seenBadges` in settings only tracks which ones Today has celebrated.
 - **Week review** (`logic/weekReview.ts`) shows on Today on Sunday (this week) and Monday (last week) until dismissed, and always on Progress; it picks one focus for next week by fixed priority.
 - **Backups:** Today nags when the last export (`lastBackupAt`) is 7+ days old; on Android the share sheet sends the file to Drive (as .txt when .json isn't shareable, so import accepts both).
+- **Standing desk:** Ahmed has a sit/stand desk at his home office. A desk session (`logic/standing.ts`, `hooks/standingDesk.ts`) switches between sitting and standing. It adds standing minutes to `daily.standMin` (on the day the stand began), and it reminds him to switch after `standForMin` / `sitForMin`. Like the quick timer, its live state is kept in localStorage, not Dexie. It doesn't count toward the streak.
 - **Food:** habits are tracked, but there is no calorie or diet tracking, because meals are shared with family.
 
 ## Deploy

@@ -1,6 +1,8 @@
 import { useEffect, type ReactNode } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
+import { QuickTimer } from './components/QuickTimer'
+import { StandingDesk } from './components/StandingDesk'
 import { TodayPage } from './features/today/TodayPage'
 import { PlayerPage } from './features/player/PlayerPage'
 import { ChallengePage } from './features/challenge/ChallengePage'
@@ -42,14 +44,23 @@ export function App() {
   )
 }
 
-/** Bottom nav on every screen except the full-screen workout player. */
+/** Bottom nav on every screen except the full-screen workout player; the quick timer everywhere. */
 function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
-  if (pathname.startsWith('/workout/')) return <>{children}</>
+  if (pathname.startsWith('/workout/'))
+    return (
+      <>
+        {children}
+        <QuickTimer />
+        <StandingDesk />
+      </>
+    )
   return (
     <>
       <main className={styles.main}>{children}</main>
       <BottomNav />
+      <QuickTimer />
+      <StandingDesk />
     </>
   )
 }

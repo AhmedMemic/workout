@@ -2,9 +2,18 @@
   padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-4));
 }
 
+/* room for the floating timer / standing-desk pill so it never hides the last item */
+.main:has(~ [data-floating]) {
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 80px);
+}
+
 @media (min-width: 900px) {
   .main {
     padding-bottom: 0;
     margin-left: 220px;
+  }
+
+  .main:has(~ [data-floating]) {
+    padding-bottom: 88px;
   }
 }

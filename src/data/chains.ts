@@ -42,6 +42,17 @@ export const chains: Record<ChainId, Chain> = {
     name: { en: 'Core', bs: 'Trup' },
     steps: ['dead-bug', 'plank', 'side-plank', 'ball-rollout', 'ball-stir-the-pot'],
   },
+  // single-leg work starts with support, so balance doesn't limit the leg training
+  lunge: {
+    id: 'lunge',
+    name: { en: 'Lunge', bs: 'Iskorak' },
+    steps: ['split-squat', 'reverse-lunge', 'bulgarian-split-squat', 'bulgarian-split-squat-weighted'],
+  },
+  singleLegHinge: {
+    id: 'singleLegHinge',
+    name: { en: 'Single-leg hinge', bs: 'Pregib na jednoj nozi' },
+    steps: ['kickstand-rdl', 'single-leg-rdl'],
+  },
 }
 
 /** Starting step per chain, from the "likely start" in the program. */
@@ -54,6 +65,8 @@ export const defaultLevels: Record<ChainId, number> = {
   overhead: 1,
   hamstrings: 1,
   core: 3,
+  lunge: 0,
+  singleLegHinge: 0,
 }
 
 /** Where an exercise sits in a ladder, if anywhere. */

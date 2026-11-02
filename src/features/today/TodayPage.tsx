@@ -21,6 +21,8 @@ import { dayOfMonth, daysInMonth, formatDay, formatMonth, formatNumber, monthKey
 import { isRestDay, programPosition, sessionOptionsFor } from '../../logic/schedule'
 import { currentStreak } from '../../logic/streak'
 import { isDayComplete } from '../../logic/challenge'
+import { useStandToday } from '../../components/StandingDesk'
+import { deskActions } from '../../hooks/standingDesk'
 import { SessionCard } from './SessionCard'
 import { Highlights } from './Highlights'
 import { WeekStrip } from './WeekStrip'
@@ -42,6 +44,7 @@ export function TodayPage() {
   const activeSession = useActiveSession()
   const challenge = useChallenge(month)
   const challengeDays = useChallengeDays(month)
+  const standMin = useStandToday()
 
   if (!settings || !doneByDate) return null
 
@@ -93,8 +96,14 @@ export function TodayPage() {
         <CheckRow
           state={daily?.deskReset ? 'done' : 'empty'}
           label={t('today.deskReset')}
-          value={t('today.minutes', { n: 12 })}
+          value={t('today.minutes', { n: templates.deskReset.minutes })}
           onClick={() => setSheet('desk')}
+        />
+        <CheckRow
+          state={standMin >= settings.standGoalMin ? 'done' : standMin > 0 ? 'partial' : 'empty'}
+          label={t('desk.title')}
+          value={`${standMin} / ${settings.standGoalMin} ${t('unit.minutes')}`}
+          onClick={deskActions.open}
         />
         <CheckRow
           state={challengeState}

@@ -24,6 +24,12 @@ export interface Settings {
   backupSnoozedUntil: string
   /** Monday of the week whose review was dismissed on Today. */
   reviewSeenWeek: string
+  /** Standing-desk goal per work day, in minutes. */
+  standGoalMin: number
+  /** Remind to sit after standing this long, and to stand after sitting this long (minutes). */
+  standForMin: number
+  sitForMin: number
+  deskReminders: boolean
 }
 
 export const defaultSettings = (): Settings => ({
@@ -39,6 +45,10 @@ export const defaultSettings = (): Settings => ({
   lastBackupAt: '',
   backupSnoozedUntil: '',
   reviewSeenWeek: '',
+  standGoalMin: 120,
+  standForMin: 30,
+  sitForMin: 45,
+  deskReminders: true,
 })
 
 export async function loadSettings(): Promise<Settings> {

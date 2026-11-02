@@ -44,6 +44,8 @@ export interface DailyLog {
   steps?: number
   deskReset?: boolean
   walkMin?: number
+  /** Minutes stood at the standing desk. */
+  standMin?: number
   food?: Record<string, boolean>
 }
 
@@ -71,9 +73,12 @@ export interface TestResult {
   toeTouch?: 'knee' | 'shin' | 'ankle' | 'toes' | 'floor'
   waistCm?: number
   hangSec?: number
+  /** One-leg stand, eyes open, hands on hips; capped at 60 s. Added after v3, no index needed. */
+  balanceLeftSec?: number
+  balanceRightSec?: number
 }
 
-export type GoalMetric = 'weight' | 'waistCm' | 'pushups' | 'plankSec' | 'squats60' | 'hangSec'
+export type GoalMetric = 'weight' | 'waistCm' | 'pushups' | 'plankSec' | 'squats60' | 'hangSec' | 'balanceLeftSec' | 'balanceRightSec'
 
 export interface Goal {
   id?: number

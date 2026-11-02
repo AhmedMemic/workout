@@ -3,3 +3,6 @@ dist
 dev-dist
 *.local
 .DS_Store
+
+# personal backups (repo is public)
+corner-backup-*

@@ -9,7 +9,9 @@ export const metricInfo: Record<GoalMetric, { label: MessageKey; unit: MessageKe
   plankSec: { label: 'metric.plank', unit: 'unit.seconds', how: 'testHow.plank' },
   squats60: { label: 'metric.squats', unit: 'unit.reps', how: 'testHow.squats' },
   hangSec: { label: 'metric.hang', unit: 'unit.seconds', how: 'testHow.hang' },
+  balanceLeftSec: { label: 'metric.balanceLeft', unit: 'unit.seconds', how: 'testHow.balance' },
+  balanceRightSec: { label: 'metric.balanceRight', unit: 'unit.seconds' },
 }
 
-export const goalMetrics: GoalMetric[] = ['weight', 'waistCm', 'pushups', 'plankSec', 'squats60', 'hangSec']
+export const goalMetrics: GoalMetric[] = ['weight', 'waistCm', 'pushups', 'plankSec', 'squats60', 'hangSec', 'balanceLeftSec', 'balanceRightSec']
 export const testMetrics = goalMetrics.filter((m) => m !== 'weight') as Exclude<GoalMetric, 'weight'>[]

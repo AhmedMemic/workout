@@ -117,7 +117,7 @@ export const templates: Record<TemplateId, Template> = {
     restSec: 75,
     pairs: [
       [
-        { id: 'B1a', exerciseId: 'reverse-lunge', reps: reps(8, 15) },
+        { id: 'B1a', chain: 'lunge', reps: reps(8, 15) },
         { id: 'B1b', chain: 'row', reps: reps(6, 15) },
       ],
       [
@@ -139,12 +139,12 @@ export const templates: Record<TemplateId, Template> = {
     restSec: 75,
     pairs: [
       [
-        { id: 'C1a', exerciseId: 'bulgarian-split-squat', reps: reps(8, 15) },
+        { id: 'C1a', chain: 'lunge', reps: reps(8, 15) },
         { id: 'C1b', exerciseId: 'bent-over-row', reps: reps(15, 20) },
       ],
       [
         { id: 'C2a', exerciseId: 'tempo-pushup', reps: reps(5, 12) },
-        { id: 'C2b', exerciseId: 'single-leg-rdl', reps: reps(8, 12) },
+        { id: 'C2b', chain: 'singleLegHinge', reps: reps(8, 12) },
       ],
       [
         { id: 'C3a', exerciseId: 'overhead-triceps-extension', reps: reps(10, 15) },
@@ -158,7 +158,7 @@ export const templates: Record<TemplateId, Template> = {
     kind: 'flow',
     name: { en: 'Warm-up', bs: 'Zagrijavanje' },
     description: { en: 'Raise, mobilise, activate, prime', bs: 'Zagrij, razgibaj, aktiviraj, pripremi' },
-    minutes: 6,
+    minutes: 7,
     items: [
       { exerciseId: 'march-in-place', seconds: 90 },
       { exerciseId: 'cat-cow', reps: 8 },
@@ -166,6 +166,7 @@ export const templates: Record<TemplateId, Template> = {
       { exerciseId: 'glute-bridge', reps: 10 },
       { exerciseId: 'arm-circles', reps: 10 },
       { exerciseId: 'bodyweight-squat', reps: 8 },
+      { exerciseId: 'single-leg-stand', seconds: 30, perSide: true },
       { exerciseId: 'incline-pushup', reps: 6 },
     ],
   },
@@ -198,8 +199,8 @@ export const templates: Record<TemplateId, Template> = {
     id: 'deskReset',
     kind: 'flow',
     name: { en: 'Desk reset', bs: 'Reset od sjedenja' },
-    description: { en: 'Hips, upper back, chest, neck', bs: 'Kukovi, gornja leđa, prsa, vrat' },
-    minutes: 12,
+    description: { en: 'Hips, upper back, chest, neck, balance', bs: 'Kukovi, gornja leđa, prsa, vrat, ravnoteža' },
+    minutes: 14,
     items: [
       { exerciseId: 'cat-cow', reps: 8 },
       { exerciseId: 'thread-the-needle', reps: 6, perSide: true },
@@ -211,6 +212,8 @@ export const templates: Record<TemplateId, Template> = {
       { exerciseId: 'chin-tuck', reps: 10 },
       { exerciseId: 'wall-angel', reps: 8 },
       { exerciseId: 'ball-back-extension', reps: 10 },
+      { exerciseId: 'tandem-stance', seconds: 30, perSide: true },
+      { exerciseId: 'single-leg-stand', seconds: 30, perSide: true },
       { exerciseId: 'childs-pose', seconds: 60 },
     ],
   },
@@ -218,14 +221,15 @@ export const templates: Record<TemplateId, Template> = {
     id: 'deskResetShort',
     kind: 'flow',
     name: { en: 'Desk reset (short)', bs: 'Reset od sjedenja (kratki)' },
-    description: { en: '5 minutes for busy days', bs: '5 minuta za zauzete dane' },
-    minutes: 5,
+    description: { en: '6 minutes for busy days', bs: '6 minuta za zauzete dane' },
+    minutes: 6,
     items: [
       { exerciseId: 'cat-cow', reps: 8 },
       { exerciseId: 'hip-flexor-stretch', seconds: 45, perSide: true },
       { exerciseId: 'doorway-chest-stretch', seconds: 45, perSide: true },
       { exerciseId: 'chin-tuck', reps: 10 },
       { exerciseId: 'wall-angel', reps: 8 },
+      { exerciseId: 'single-leg-stand', seconds: 30, perSide: true },
     ],
   },
 

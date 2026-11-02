@@ -54,7 +54,7 @@ export interface Exercise {
   youtube: string
 }
 
-export type ChainId = 'push' | 'squat' | 'hinge' | 'row' | 'pullup' | 'overhead' | 'hamstrings' | 'core'
+export type ChainId = 'push' | 'squat' | 'hinge' | 'row' | 'pullup' | 'overhead' | 'hamstrings' | 'core' | 'lunge' | 'singleLegHinge'
 
 export interface Chain {
   id: ChainId

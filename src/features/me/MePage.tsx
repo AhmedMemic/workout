@@ -6,6 +6,7 @@ import { useT } from '../../i18n/I18nProvider'
 import { saveSetting, useSettings, type Settings } from '../../db/settings'
 import { backUpNow, canShareBackup, importBackup, parseBackup } from '../../db/backup'
 import { formatDay } from '../../logic/dates'
+import { allowNotifications } from '../../hooks/standingDesk'
 import { MusicLibrary } from './MusicLibrary'
 import styles from './Me.module.css'
 
@@ -107,6 +108,62 @@ export function MePage() {
             </ToggleChip>
           ))}
         </Chips>
+      </Card>
+
+      <Card>
+        <div className="label">{t('me.desk')}</div>
+        <div className={styles.field}>
+          <span>{t('me.standGoal')}</span>
+        </div>
+        <Chips>
+          {[60, 120, 180, 240].map((n) => (
+            <ToggleChip key={n} selected={settings.standGoalMin === n} onClick={() => save('standGoalMin', n)}>
+              {t('me.hours', { n: n / 60 })}
+            </ToggleChip>
+          ))}
+        </Chips>
+        <div className={styles.field}>
+          <span>{t('me.deskReminders')}</span>
+        </div>
+        <Chips>
+          <ToggleChip
+            selected={settings.deskReminders}
+            onClick={() => {
+              save('deskReminders', true)
+              void allowNotifications()
+            }}
+          >
+            {t('me.on')}
+          </ToggleChip>
+          <ToggleChip selected={!settings.deskReminders} onClick={() => save('deskReminders', false)}>
+            {t('me.off')}
+          </ToggleChip>
+        </Chips>
+        <div className="muted">{t('me.deskRemindersHint')}</div>
+        {settings.deskReminders && (
+          <>
+            <div className={styles.field}>
+              <span>{t('me.standFor')}</span>
+            </div>
+            <Chips>
+              {[15, 20, 30, 45, 60].map((n) => (
+                <ToggleChip key={n} selected={settings.standForMin === n} onClick={() => save('standForMin', n)}>
+                  {n} {t('unit.minutes')}
+                </ToggleChip>
+              ))}
+            </Chips>
+            <div className={styles.field}>
+              <span>{t('me.sitFor')}</span>
+            </div>
+            <Chips>
+              {[30, 45, 60, 90].map((n) => (
+                <ToggleChip key={n} selected={settings.sitForMin === n} onClick={() => save('sitForMin', n)}>
+                  {n} {t('unit.minutes')}
+                </ToggleChip>
+              ))}
+            </Chips>
+          </>
+        )}
       </Card>
 
       <MusicLibrary />

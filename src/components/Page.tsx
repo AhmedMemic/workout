@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { TimerButton } from './QuickTimer'
 import styles from './Page.module.css'
 
 interface PageProps {
@@ -18,7 +19,10 @@ export function Page({ title, eyebrow, actions, children }: PageProps) {
           {eyebrow && <div className="muted">{eyebrow}</div>}
           <h1 className={styles.title}>{title}</h1>
         </div>
-        {actions}
+        <div className={styles.actions}>
+          <TimerButton />
+          {actions}
+        </div>
       </header>
       {children}
     </div>

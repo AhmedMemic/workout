@@ -1,0 +1,113 @@
+/* Floating pill while a desk session runs: bottom left, the quick timer is bottom right */
+.pill {
+  position: fixed;
+  left: var(--space-4);
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-3));
+  z-index: 11;
+  min-height: 52px;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.5);
+}
+
+.pillStanding {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (min-width: 900px) {
+  .pill {
+    bottom: var(--space-6);
+    left: calc(220px + var(--space-6));
+  }
+}
+
+.total {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 17px;
+}
+
+.big {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+  margin-top: calc(-1 * var(--space-2));
+}
+
+.barFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: 17px;
+  font-weight: 600;
+  min-height: var(--tap);
+}
+
+.row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.grow {
+  flex: 1;
+}
+
+.side {
+  min-height: 52px;
+  padding: 0 var(--space-4);
+}
+
+.adjust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 15px;
+}
+
+.adjustButtons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.step {
+  min-width: 60px;
+  min-height: var(--tap);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tip {
+  font-size: 14px;
+  margin: 0;
+}
