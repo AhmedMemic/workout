@@ -80,7 +80,7 @@ export function buildSteps(templateId: TemplateId, sets: number): Step[] {
   const t = templates[templateId]
   switch (t.kind) {
     case 'strength': {
-      const steps: Step[] = [...flowSteps(templates.warmUp as FlowTemplate, 'warmUp')]
+      const steps: Step[] = [...flowSteps(templates[t.warmUp] as FlowTemplate, 'warmUp')]
       for (const [a, b] of t.pairs) {
         for (let setNo = 1; setNo <= sets; setNo++) {
           steps.push({ type: 'set', section: 'main', slot: a, setNo, totalSets: sets, restAfter: 0 })
@@ -89,7 +89,7 @@ export function buildSteps(templateId: TemplateId, sets: number): Step[] {
         }
       }
       steps.push(...flowSteps(templates.gripFinisher as FlowTemplate, 'gripFinisher'))
-      steps.push(...flowSteps(templates.coolDown as FlowTemplate, 'coolDown'))
+      steps.push(...flowSteps(templates[t.coolDown] as FlowTemplate, 'coolDown'))
       return steps
     }
     case 'flow':

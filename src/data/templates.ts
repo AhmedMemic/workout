@@ -30,7 +30,11 @@ export type TemplateId =
   | 'strengthB'
   | 'strengthC'
   | 'warmUp'
+  | 'warmUpB'
+  | 'warmUpC'
   | 'coolDown'
+  | 'coolDownB'
+  | 'coolDownC'
   | 'deskReset'
   | 'deskResetShort'
   | 'gripFinisher'
@@ -53,6 +57,9 @@ export interface StrengthTemplate extends Base {
   /** Pairs done back to back (1a + 1b), rest after each pair. */
   pairs: [Slot, Slot][]
   restSec: number
+  /** Warm-up and cool-down matched to the day's main lifts. */
+  warmUp: TemplateId
+  coolDown: TemplateId
 }
 
 export interface FlowTemplate extends Base {
@@ -93,6 +100,8 @@ export const templates: Record<TemplateId, Template> = {
     description: { en: 'Squat + push', bs: 'Čučanj + guranje' },
     minutes: 40,
     restSec: 75,
+    warmUp: 'warmUp',
+    coolDown: 'coolDown',
     pairs: [
       [
         { id: 'A1a', chain: 'squat', reps: reps(12, 20) },
@@ -115,6 +124,8 @@ export const templates: Record<TemplateId, Template> = {
     description: { en: 'Hinge + pull', bs: 'Pregib + povlačenje' },
     minutes: 40,
     restSec: 75,
+    warmUp: 'warmUpB',
+    coolDown: 'coolDownB',
     pairs: [
       [
         { id: 'B1a', chain: 'lunge', reps: reps(8, 15) },
@@ -137,6 +148,8 @@ export const templates: Record<TemplateId, Template> = {
     description: { en: 'Single-leg + mix', bs: 'Jedna noga + mix' },
     minutes: 40,
     restSec: 75,
+    warmUp: 'warmUpC',
+    coolDown: 'coolDownC',
     pairs: [
       [
         { id: 'C1a', chain: 'lunge', reps: reps(8, 15) },
@@ -153,15 +166,22 @@ export const templates: Record<TemplateId, Template> = {
     ],
   },
 
+  /*
+   * Warm-ups follow RAMP (raise the pulse, activate and mobilise, potentiate): 5–10 min of
+   * dynamic moves that rehearse the day's lifts, no long static holds before lifting.
+   * Each has a balance drill. Cool-downs are static stretches for the muscles just
+   * worked, ~30–60 s per muscle (ACSM), done while warm.
+   */
   warmUp: {
     id: 'warmUp',
     kind: 'flow',
-    name: { en: 'Warm-up', bs: 'Zagrijavanje' },
-    description: { en: 'Raise, mobilise, activate, prime', bs: 'Zagrij, razgibaj, aktiviraj, pripremi' },
+    name: { en: 'Warm-up · squat & push', bs: 'Zagrijavanje · čučanj i guranje' },
+    description: { en: 'Ankles, hips and shoulders for squats and push-ups', bs: 'Gležnjevi, kukovi i ramena za čučnjeve i sklekove' },
     minutes: 7,
     items: [
       { exerciseId: 'march-in-place', seconds: 90 },
-      { exerciseId: 'cat-cow', reps: 8 },
+      { exerciseId: 'ankle-rock', reps: 8 },
+      { exerciseId: 'cat-cow', reps: 6 },
       { exerciseId: 'worlds-greatest-stretch', reps: 3, perSide: true },
       { exerciseId: 'glute-bridge', reps: 10 },
       { exerciseId: 'arm-circles', reps: 10 },
@@ -170,16 +190,81 @@ export const templates: Record<TemplateId, Template> = {
       { exerciseId: 'incline-pushup', reps: 6 },
     ],
   },
+  warmUpB: {
+    id: 'warmUpB',
+    kind: 'flow',
+    name: { en: 'Warm-up · hinge & pull', bs: 'Zagrijavanje · pregib i povlačenje' },
+    description: { en: 'Hamstrings, hips and upper back for hinges and rows', bs: 'Zadnja loža, kukovi i gornja leđa za pregibe i veslanja' },
+    minutes: 7,
+    items: [
+      { exerciseId: 'march-in-place', seconds: 90 },
+      { exerciseId: 'cat-cow', reps: 8 },
+      { exerciseId: 'hip-hinge-drill', reps: 10 },
+      { exerciseId: 'leg-swing', reps: 10 },
+      { exerciseId: 'thread-the-needle', reps: 5, perSide: true },
+      { exerciseId: 'glute-bridge', reps: 10 },
+      { exerciseId: 'wall-angel', reps: 8 },
+      { exerciseId: 'tandem-stance', seconds: 30, perSide: true },
+      { exerciseId: 'split-squat', reps: 5 },
+    ],
+  },
+  warmUpC: {
+    id: 'warmUpC',
+    kind: 'flow',
+    name: { en: 'Warm-up · single leg', bs: 'Zagrijavanje · jedna noga' },
+    description: { en: 'Hips, ankles and balance for single-leg work', bs: 'Kukovi, gležnjevi i ravnoteža za rad na jednoj nozi' },
+    minutes: 7,
+    items: [
+      { exerciseId: 'march-in-place', seconds: 90 },
+      { exerciseId: 'hip-90-90', reps: 6 },
+      { exerciseId: 'leg-swing', reps: 10 },
+      { exerciseId: 'calf-raise', reps: 12 },
+      { exerciseId: 'hip-hinge-drill', reps: 8 },
+      { exerciseId: 'split-squat', reps: 5 },
+      { exerciseId: 'single-leg-stand', seconds: 30, perSide: true },
+      { exerciseId: 'arm-circles', reps: 10 },
+      { exerciseId: 'incline-pushup', reps: 6 },
+    ],
+  },
   coolDown: {
     id: 'coolDown',
     kind: 'flow',
-    name: { en: 'Cool-down', bs: 'Hlađenje' },
+    name: { en: 'Cool-down · legs & chest', bs: 'Hlađenje · noge i prsa' },
     description: { en: 'Stretch and breathe', bs: 'Istezanje i disanje' },
-    minutes: 4,
+    minutes: 5,
     items: [
       { exerciseId: 'hip-flexor-stretch', seconds: 45, perSide: true },
+      { exerciseId: 'quad-stretch', seconds: 30 },
       { exerciseId: 'doorway-chest-stretch', seconds: 45 },
       { exerciseId: 'childs-pose', seconds: 45 },
+      { exerciseId: 'breathing', seconds: 60 },
+    ],
+  },
+  coolDownB: {
+    id: 'coolDownB',
+    kind: 'flow',
+    name: { en: 'Cool-down · hips & back', bs: 'Hlađenje · kukovi i leđa' },
+    description: { en: 'Stretch and breathe', bs: 'Istezanje i disanje' },
+    minutes: 6,
+    items: [
+      { exerciseId: 'hamstring-stretch', seconds: 45, perSide: true },
+      { exerciseId: 'figure-four-stretch', seconds: 45 },
+      { exerciseId: 'shoulder-stretch', seconds: 30 },
+      { exerciseId: 'childs-pose', seconds: 45 },
+      { exerciseId: 'breathing', seconds: 60 },
+    ],
+  },
+  coolDownC: {
+    id: 'coolDownC',
+    kind: 'flow',
+    name: { en: 'Cool-down · calves & hips', bs: 'Hlađenje · listovi i kukovi' },
+    description: { en: 'Stretch and breathe', bs: 'Istezanje i disanje' },
+    minutes: 6,
+    items: [
+      { exerciseId: 'calf-stretch', seconds: 30 },
+      { exerciseId: 'hip-flexor-stretch', seconds: 45, perSide: true },
+      { exerciseId: 'figure-four-stretch', seconds: 30 },
+      { exerciseId: 'doorway-chest-stretch', seconds: 45 },
       { exerciseId: 'breathing', seconds: 60 },
     ],
   },

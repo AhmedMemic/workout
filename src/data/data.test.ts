@@ -41,6 +41,21 @@ describe('static data', () => {
     }
   })
 
+  it('warm-ups and cool-downs fit the player: timed items for timed exercises, reps for the rest', () => {
+    for (const t of Object.values(templates)) {
+      if (t.kind !== 'flow') continue
+      for (const item of t.items) {
+        const m = exerciseById[item.exerciseId].measure
+        expect(m === 'time' ? item.seconds : item.reps ?? item.seconds, `${t.id}: ${item.exerciseId}`).toBeDefined()
+      }
+    }
+    for (const t of Object.values(templates))
+      if (t.kind === 'strength') {
+        expect(templates[t.warmUp].kind, t.id).toBe('flow')
+        expect(templates[t.coolDown].kind, t.id).toBe('flow')
+      }
+  })
+
   it('every slot can be measured for every exercise it may resolve to', () => {
     for (const t of Object.values(templates)) {
       if (t.kind !== 'strength') continue

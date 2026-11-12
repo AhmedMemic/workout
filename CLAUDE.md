@@ -60,9 +60,10 @@ src/
 - **Blocks:** 4 weeks, counted from the `startDate` setting. Block 1 uses 2 sets, later blocks 3. Week 4 is a deload (one set fewer).
 - **Progression:** a template slot resolves to `chain.steps[level]`. If every set hits the top of the rep range, the level goes up next session. "Too hard / Too easy" moves one step for the remaining sets and saves the change.
 - **Streak:** consecutive days with any activity (a session, a desk reset, or a full challenge day).
-- **Monthly challenge:** one per month. The starter is 10 push-ups, a plank ramping 30→60 s, and 20 sit-ups. Ramps and day counts begin at `startDay`. Days before the start are not "missed".
+- **Monthly challenge:** one per month. The starter is 10 push-ups, a plank ramping 30→60 s, and 20 sit-ups. Ramps and day counts begin at `startDay`. Days before the start are not "missed". The month's tasks can be edited, or a custom challenge built (`ideaId: 'custom'`, name on the row). A task added mid-month gets `since`, and `isDayComplete(tasks, done, date)` ignores it before then, so past days stay complete.
 - **Equipment:** 2×5 kg and 1×7 kg dumbbells, a stability ball, grip tools, a pedal resistance band, chair, wall, doorframe. No mat and no usable table, so no table exercises. A pull-up bar is optional.
 - **Player:** timed work has a get-ready countdown (`readySec` setting, skipped right after a rest) and stops at zero with a beep. Voice cues use the Web Speech API (`say()` in `hooks/device.ts`), falling back to a Croatian or Serbian voice for Bosnian.
+- **Warm-up / cool-down:** each strength template names its own (`warmUp`/`coolDown`, matched to its lifts). Warm-ups are dynamic (RAMP) with one balance drill; cool-downs are static holds of about 30–60 s.
 - **Apartment:** exercises must be low-noise, so no jumping.
 - **Balance:** Ahmed's single-leg balance is weak. Single-leg strength work starts supported (wall or doorframe): the `lunge` and `singleLegHinge` ladders start at the supported version. Balance practice is in the warm-up and desk resets, and the re-tests include a one-leg stand per side.
 - **Goals** (`goals` table, schema v2) track weight (7-day average) or a test metric, from a start value to a target; a goal is stamped `reachedAt` once and stays reached.

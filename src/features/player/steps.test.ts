@@ -13,6 +13,13 @@ describe('buildSteps', () => {
     expect(steps[i + 1].type).toBe('rest')
   })
 
+  it('each strength day has its own warm-up and cool-down', () => {
+    const ids = (id: 'strengthA' | 'strengthB' | 'strengthC', section: string) =>
+      buildSteps(id, 2).filter((s) => s.section === section && s.type !== 'rest' && s.type !== 'set').map((s) => 'exerciseId' in s && s.exerciseId).join()
+    expect(new Set([ids('strengthA', 'warmUp'), ids('strengthB', 'warmUp'), ids('strengthC', 'warmUp')]).size).toBe(3)
+    expect(new Set([ids('strengthA', 'coolDown'), ids('strengthB', 'coolDown'), ids('strengthC', 'coolDown')]).size).toBe(3)
+  })
+
   it('per-side timed items become two steps', () => {
     const steps = buildSteps('coolDown', 1)
     expect(steps.filter((s) => s.type === 'timed' && s.exerciseId === 'hip-flexor-stretch')).toHaveLength(2)
