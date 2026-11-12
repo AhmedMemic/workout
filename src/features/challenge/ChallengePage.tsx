@@ -8,10 +8,11 @@ import { useT } from '../../i18n/I18nProvider'
 import { challengeIdeas } from '../../data/challenges'
 import { replaceChallenge, useChallenge, useChallengeDays } from '../../db/queries'
 import { daysInMonth, formatMonth, monthKey, today as todayISO, weekday, weekdayName, type ISODate } from '../../logic/dates'
-import { isDayComplete, targetForDay } from '../../logic/challenge'
+import { challengeName, isDayComplete, targetForDay, tasksOn } from '../../logic/challenge'
 import { bestStreak } from '../../logic/streak'
 import { ChallengeSheet } from '../today/sheets'
 import { nextMonth, shiftMonth } from './months'
+import { ChallengeEditor } from './ChallengeEditor'
 import styles from './Challenge.module.css'
 
 /** Verdict for a finished month, by share of days completed. */
@@ -31,6 +32,8 @@ export function ChallengePage() {
   const [month, setMonth] = useState(params.get('month') === upcoming ? upcoming : currentMonth)
   const [openDate, setOpenDate] = useState<ISODate | null>(null)
   const [picking, setPicking] = useState(false)
+  // 'edit' = this month's challenge, 'new' = build one from scratch
+  const [editing, setEditing] = useState<'edit' | 'new' | null>(null)
 
   const challenge = useChallenge(month)
   const days = useChallengeDays(month)
@@ -43,7 +46,7 @@ export function ChallengePage() {
   const dates = Array.from({ length: n }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`)
   const tasks = challenge?.tasks ?? []
   const startDay = challenge?.startDay ?? 1
-  const complete = new Set(dates.filter((d) => isDayComplete(tasks, days?.get(d) ?? [])))
+  const complete = new Set(dates.filter((d) => isDayComplete(tasks, days?.get(d) ?? [], d)))
   const offset = weekday(dates[0])
   const todayDay = Number(todayDate.slice(8, 10))
 
@@ -72,7 +75,7 @@ export function ChallengePage() {
           <div className="label">{t('challenge.nextTitle')}</div>
           {challenge ? (
             <>
-              <div className={styles.score}>{l(challengeIdeas.find((c) => c.id === challenge.ideaId)?.name ?? { en: '', bs: '' })}</div>
+              <div className={styles.score}>{l(challengeName(challenge))}</div>
               <ul className={styles.tasks}>
                 {challenge.tasks.map((task) => (
                   <li key={task.id}>
@@ -89,7 +92,12 @@ export function ChallengePage() {
           ) : (
             <div className="muted">{t('challenge.nextNone')}</div>
           )}
-          <Button block onClick={() => setPicking(true)}>
+          {challenge && (
+            <Button block onClick={() => setEditing('edit')}>
+              {t('challenge.edit')}
+            </Button>
+          )}
+          <Button variant={challenge ? 'secondary' : 'primary'} block onClick={() => setPicking(true)}>
             {challenge ? t('challenge.change') : t('challenge.pickButton')}
           </Button>
         </Card>
@@ -98,7 +106,7 @@ export function ChallengePage() {
       ) : (
         <>
           <Card>
-            <div className="label">{l(challengeIdeas.find((c) => c.id === challenge.ideaId)?.name ?? { en: '', bs: '' })}</div>
+            <div className="label">{l(challengeName(challenge))}</div>
             <div className={styles.score}>{t('challenge.daysDone', { a: complete.size, b: n - startDay + 1 })}</div>
             {isPast && <div className={styles.result}>{t(resultKey(complete.size / (n - startDay + 1)))}</div>}
             <div className="muted">{t('challenge.best', { n: bestStreak(complete) })}</div>
@@ -106,7 +114,7 @@ export function ChallengePage() {
               <>
                 <div className="label">{t('challenge.tasks')}</div>
                 <ul className={styles.tasks}>
-                  {tasks.map((task) => (
+                  {tasksOn(tasks, todayDate).map((task) => (
                     <li key={task.id}>
                       <span>{l(task.name)}</span>
                       <span className="muted">
@@ -147,9 +155,14 @@ export function ChallengePage() {
           </div>
 
           {isCurrent && (
-            <Button variant="secondary" block onClick={() => setPicking(true)}>
-              {t('challenge.change')}
-            </Button>
+            <>
+              <Button variant="secondary" block onClick={() => setEditing('edit')}>
+                {t('challenge.edit')}
+              </Button>
+              <Button variant="secondary" block onClick={() => setPicking(true)}>
+                {t('challenge.change')}
+              </Button>
+            </>
           )}
 
           {openDate && (
@@ -180,7 +193,26 @@ export function ChallengePage() {
             {l(idea.name)}
           </Button>
         ))}
+        <Button
+          variant="secondary"
+          block
+          onClick={() => {
+            setPicking(false)
+            setEditing('new')
+          }}
+        >
+          <Icon name="plus" size={18} /> {t('challenge.custom')}
+        </Button>
       </Sheet>
+
+      {editing && (
+        <ChallengeEditor
+          month={month}
+          monthName={monthName}
+          challenge={editing === 'edit' ? challenge : undefined}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </Page>
   )
 }

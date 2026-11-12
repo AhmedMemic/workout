@@ -3,7 +3,7 @@ import { addDays, daysInMonth, diffDays, startOfWeek, weekday } from './dates'
 import { isRestDay, planFor, programPosition, resetWeekSwaps, sessionOptionsFor, setsFor, swapDays, weekHasSwaps } from './schedule'
 import { levelOf, nextLevel, resolveSlot, targetFor } from './progression'
 import { bestStreak, currentStreak } from './streak'
-import { isDayComplete, targetForDay } from './challenge'
+import { challengeName, draftFrom, isDayComplete, targetForDay, tasksFromDrafts } from './challenge'
 import { templates, type StrengthTemplate } from '../data/templates'
 import { starterChallenge } from '../data/challenges'
 import { currentValue, goalProgress, isReached } from './goals'
@@ -144,6 +144,42 @@ describe('challenge', () => {
   it('a day is complete when every task is done', () => {
     expect(isDayComplete(starterChallenge.tasks, ['pushups', 'plank'])).toBe(false)
     expect(isDayComplete(starterChallenge.tasks, ['pushups', 'plank', 'situps'])).toBe(true)
+  })
+
+  it('a task added mid-month only counts from its start', () => {
+    const tasks = [...starterChallenge.tasks, { id: 'walk', name: { en: 'Walk', bs: 'Šetnja' }, unit: 'minutes' as const, target: 20, since: '2026-11-12' }]
+    const all = ['pushups', 'plank', 'situps']
+    expect(isDayComplete(tasks, all, '2026-11-11')).toBe(true)
+    expect(isDayComplete(tasks, all, '2026-11-12')).toBe(false)
+    expect(isDayComplete(tasks, [...all, 'walk'], '2026-11-12')).toBe(true)
+  })
+
+  it('edits tasks: kept tasks keep id, names and exercise; new ones get since', () => {
+    const drafts = starterChallenge.tasks.map((t) => draftFrom(t, 'bs'))
+    drafts[0].target = '15'
+    drafts[1].name = 'Bočni plank'
+    drafts.splice(2, 1)
+    drafts.push({ name: 'Bez sokova', unit: 'check', target: '', rampTo: '' })
+    const r = tasksFromDrafts(drafts, starterChallenge.tasks, 'bs', '2026-11-12')
+    if ('error' in r) throw new Error(r.error)
+    expect(r.tasks[0]).toEqual({ ...starterChallenge.tasks[0], target: 15 })
+    expect(r.tasks[1]).toMatchObject({ id: 'plank', name: { en: 'Bočni plank', bs: 'Bočni plank' }, target: 30, rampTo: 60 })
+    expect(r.tasks[1].exerciseId).toBeUndefined()
+    expect(r.tasks[2]).toMatchObject({ unit: 'check', target: 1, since: '2026-11-12' })
+    expect(r.tasks).toHaveLength(3)
+  })
+
+  it('rejects empty or broken drafts', () => {
+    expect(tasksFromDrafts([], [], 'en')).toEqual({ error: 'noTasks' })
+    expect(tasksFromDrafts([{ name: ' ', unit: 'reps', target: '5', rampTo: '' }], [], 'en')).toEqual({ error: 'noName' })
+    expect(tasksFromDrafts([{ name: 'Squats', unit: 'reps', target: '2.5', rampTo: '' }], [], 'en')).toEqual({ error: 'badNumber' })
+    expect(tasksFromDrafts([{ name: 'Squats', unit: 'reps', target: '20', rampTo: 'x' }], [], 'en')).toEqual({ error: 'badNumber' })
+  })
+
+  it('names a challenge from its row, its idea, or a fallback', () => {
+    expect(challengeName({ ideaId: 'starter' }).en).toBe('Starter challenge')
+    expect(challengeName({ ideaId: 'custom', name: { en: 'Mine', bs: 'Moj' } }).bs).toBe('Moj')
+    expect(challengeName({ ideaId: 'custom' }).en).toBe('My challenge')
   })
 })
 

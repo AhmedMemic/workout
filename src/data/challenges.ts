@@ -11,6 +11,8 @@ export interface ChallengeTask {
   /** Target on the last day; targets rise evenly in between. */
   rampTo?: number
   exerciseId?: string
+  /** Added mid-month: earlier days don't need it to count as complete. */
+  since?: string
 }
 
 export interface ChallengeIdea {
@@ -29,6 +31,9 @@ export const starterChallenge: ChallengeIdea = {
     { id: 'situps', name: { en: 'Sit-ups', bs: 'Trbušnjaci' }, unit: 'reps', target: 20, exerciseId: 'situp' },
   ],
 }
+
+/** ideaId of a challenge the user put together; its name lives on the month's row. */
+export const CUSTOM_IDEA = 'custom'
 
 export const challengeIdeas: ChallengeIdea[] = [
   starterChallenge,

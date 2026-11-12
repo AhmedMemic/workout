@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type ChallengeDay, type CornerDB, type DailyLog, type Goal, type LoggedSet, type Session, type Track } from './db'
-import { challengeIdeas, starterChallenge } from '../data/challenges'
+import { CUSTOM_IDEA, challengeIdeas, starterChallenge, type ChallengeTask } from '../data/challenges'
+import type { L10n } from '../i18n/I18nProvider'
 import type { TemplateId } from '../data/templates'
 import type { ChainId } from '../data/types'
 import { addDays, dayOfMonth, monthKey, today, type ISODate } from '../logic/dates'
@@ -92,6 +93,14 @@ export async function replaceChallenge(month: string, ideaId: string): Promise<v
   await db.challenges.put({ month, ideaId: idea.id, tasks: idea.tasks, startDay })
 }
 
+/** Saves edited tasks. A new challenge starts like a picked one; an existing one keeps its start day. */
+export async function saveChallenge(month: string, name: L10n, tasks: ChallengeTask[], fresh: boolean): Promise<void> {
+  const old = await db.challenges.get(month)
+  const now = today()
+  const startDay = !fresh && old ? old.startDay : monthKey(now) === month ? dayOfMonth(now) : 1
+  await db.challenges.put({ month, ideaId: fresh || !old ? CUSTOM_IDEA : old.ideaId, name, tasks, startDay })
+}
+
 export function useChallenge(month: string) {
   return useLiveQuery(() => db.challenges.get(month), [month])
 }
@@ -123,7 +132,7 @@ export function useActiveDates(): Set<ISODate> | undefined {
     const challenges = new Map((await db.challenges.toArray()).map((c) => [c.month, c.tasks]))
     for (const day of await db.challengeDays.toArray()) {
       const tasks = challenges.get(day.month)
-      if (tasks && isDayComplete(tasks, day.done)) active.add(day.date)
+      if (tasks && isDayComplete(tasks, day.done, day.date)) active.add(day.date)
     }
     return active
   }, [])

@@ -71,7 +71,7 @@ export function weekReview(data: AllData, weekStart: ISODate, stepGoal: number, 
   const stepDays = daily.filter((d) => (d.steps ?? 0) >= stepGoal).length
 
   const tasks = new Map(data.challenges.map((c) => [c.month, c.tasks]))
-  const challengeDays = data.challengeDays.filter((c) => inWeek(c.date) && isDayComplete(tasks.get(c.month) ?? [], c.done)).length
+  const challengeDays = data.challengeDays.filter((c) => inWeek(c.date) && isDayComplete(tasks.get(c.month) ?? [], c.done, c.date)).length
 
   const end = weightAverage(data.daily, weekEnd)
   const start = weightAverage(data.daily, addDays(weekStart, -1))

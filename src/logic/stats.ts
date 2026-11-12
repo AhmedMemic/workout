@@ -29,7 +29,7 @@ export function activeDates(data: AllData): Set<ISODate> {
   const tasks = new Map(data.challenges.map((c) => [c.month, c.tasks]))
   for (const day of data.challengeDays) {
     const t = tasks.get(day.month)
-    if (t && isDayComplete(t, day.done)) active.add(day.date)
+    if (t && isDayComplete(t, day.done, day.date)) active.add(day.date)
   }
   return active
 }
@@ -44,7 +44,7 @@ export function fullChallengeMonths(data: AllData, today: ISODate): number {
     let all = true
     for (let day = c.startDay ?? 1; day <= days && all; day++) {
       const date = `${c.month}-${String(day).padStart(2, '0')}`
-      all = isDayComplete(c.tasks, done.get(date) ?? [])
+      all = isDayComplete(c.tasks, done.get(date) ?? [], date)
     }
     if (all) n++
   }

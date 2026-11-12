@@ -3,6 +3,7 @@ import type { ChainId } from '../data/types'
 import type { TemplateId } from '../data/templates'
 import type { ChallengeTask } from '../data/challenges'
 import type { ISODate } from '../logic/dates'
+import type { L10n } from '../i18n/I18nProvider'
 
 export interface LoggedSet {
   slotId?: string
@@ -53,6 +54,8 @@ export interface Challenge {
   /** 'YYYY-MM' — one challenge per month. */
   month: string
   ideaId: string
+  /** Set when the user named or edited the challenge; otherwise the idea's name. */
+  name?: L10n
   tasks: ChallengeTask[]
   /** Day of the month the challenge began (ramps and day counts start here). */
   startDay?: number

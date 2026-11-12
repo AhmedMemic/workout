@@ -55,7 +55,7 @@ export function TodayPage() {
   const todayDone = challengeDays?.get(date) ?? []
   const tasks = challenge?.tasks ?? []
   const challengeState: CheckState =
-    tasks.length && isDayComplete(tasks, todayDone) ? 'done' : todayDone.length ? 'partial' : 'empty'
+    tasks.length && isDayComplete(tasks, todayDone, date) ? 'done' : todayDone.length ? 'partial' : 'empty'
 
   const steps = daily?.steps
   const foodDone = habits.filter((h) => daily?.food?.[h.id]).length
@@ -140,7 +140,7 @@ export function TodayPage() {
           <div className={styles.dots}>
             {Array.from({ length: days }, (_, i) => {
               const d = `${month}-${String(i + 1).padStart(2, '0')}`
-              const complete = isDayComplete(tasks, challengeDays.get(d) ?? [])
+              const complete = isDayComplete(tasks, challengeDays.get(d) ?? [], d)
               const cls = [styles.dot, complete && styles.dotDone, d === date && styles.dotToday].filter(Boolean).join(' ')
               return <span key={d} className={cls} />
             })}

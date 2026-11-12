@@ -8,7 +8,7 @@ import { habits, swaps } from '../../data/habits'
 import type { Challenge } from '../../db/db'
 import { toggleChallengeTask, toggleFood, updateDaily } from '../../db/queries'
 import { daysInMonth, dayOfMonth, formatDay, monthKey, type ISODate } from '../../logic/dates'
-import { targetForDay } from '../../logic/challenge'
+import { targetForDay, tasksOn } from '../../logic/challenge'
 import type { TaskUnit } from '../../data/challenges'
 import type { MessageKey } from '../../i18n/en'
 import styles from './Today.module.css'
@@ -142,7 +142,7 @@ export function ChallengeSheet({
     <Sheet open={open} onClose={onClose} title={t('today.challenge')}>
       <div className="muted">{formatDay(date, lang)} · {t('today.dayOf', { d: day, n: days })}</div>
       <div className={styles.list}>
-        {challenge.tasks.map((task) => {
+        {tasksOn(challenge.tasks, date).map((task) => {
           const key = unitKey[task.unit]
           const value = key ? `${targetForDay(task, day, days, challenge.startDay)} ${t(key)}` : undefined
           return (
