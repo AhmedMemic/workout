@@ -20,6 +20,8 @@ import { computeStats } from '../../logic/stats'
 import { badges, isEarned, type Badge } from '../../logic/badges'
 import { formatClock } from '../../hooks/useCountdown'
 import { GoalSheet } from './GoalSheet'
+import { BalanceCard } from './BalanceCard'
+import { StandCard } from './StandCard'
 import { metricInfo, testMetrics } from './metrics'
 import styles from './Progress.module.css'
 
@@ -293,6 +295,8 @@ export function ProgressPage() {
         )}
       </Card>
 
+      <StandCard daily={data.daily} date={date} goal={settings.standGoalMin} />
+
       <Card>
         <div className="label">{t('progress.tests')}</div>
         <div className="muted">
@@ -365,6 +369,8 @@ export function ProgressPage() {
           {t('progress.addTest')}
         </Button>
       </Card>
+
+      <BalanceCard tests={data.tests} />
 
       <Card>
         <div className={styles.cardHead}>

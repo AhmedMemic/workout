@@ -168,9 +168,25 @@
 
 .historyList li {
   display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: 2px;
   padding: var(--space-2) 0;
   border-top: 1px solid var(--surface-2);
   font-variant-numeric: tabular-nums;
+}
+
+.historyTop {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.note {
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.withNote {
+  padding-bottom: var(--space-3);
 }

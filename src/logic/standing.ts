@@ -1,3 +1,5 @@
+import { addDays, type ISODate } from './dates'
+
 /**
  * Standing desk: a work session switches between sitting and standing. Standing time is
  * counted from timestamps and added to the day's log when you sit down or stop.
@@ -40,4 +42,13 @@ export function parseDesk(raw: unknown): DeskState {
   const r = raw as Partial<DeskState>
   if ((r.mode !== 'sitting' && r.mode !== 'standing') || typeof r.since !== 'number') return deskOff
   return { mode: r.mode, since: r.since, reminded: r.reminded === true }
+}
+
+/** Standing minutes for the `days` days up to and including `end`, oldest first (0 for days without a log). */
+export function standHistory(daily: { date: ISODate; standMin?: number }[], end: ISODate, days = 14): { date: ISODate; min: number }[] {
+  const byDate = new Map(daily.map((d) => [d.date, d.standMin ?? 0]))
+  return Array.from({ length: days }, (_, i) => {
+    const date = addDays(end, i - days + 1)
+    return { date, min: byDate.get(date) ?? 0 }
+  })
 }

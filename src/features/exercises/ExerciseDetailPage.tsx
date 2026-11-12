@@ -10,7 +10,8 @@ import { equipmentLabels, muscleLabels } from '../../data/labels'
 import { useDoneSessions, useLevels } from '../../db/queries'
 import { formatShort } from '../../logic/dates'
 import { levelOf } from '../../logic/progression'
-import { exerciseHistory } from '../../logic/records'
+import { bestPerSession, exerciseHistory, firstDone } from '../../logic/records'
+import { TrendChart } from '../../components/charts'
 import styles from './Exercises.module.css'
 
 export function ExerciseDetailPage() {
@@ -26,6 +27,8 @@ export function ExerciseDetailPage() {
   const levels = useLevels()
   const history = sessions && exerciseHistory(sessions, exercise.id)
   const yourStep = ladder && levels ? levelOf(ladder.chain.id, levels) : undefined
+  const reached = ladder && sessions ? firstDone(sessions) : undefined
+  const unit = history && t(history.unit === 'seconds' ? 'unit.seconds' : 'unit.reps')
 
   return (
     <Page
@@ -51,15 +54,24 @@ export function ExerciseDetailPage() {
           <div className="label">{t('exercise.history')}</div>
           <div className={styles.best}>
             <span className={styles.bestValue}>
-              {history.best.value} {t(history.unit === 'seconds' ? 'unit.seconds' : 'unit.reps')}
+              {history.best.value} {unit}
             </span>
             <span className="muted">{t('exercise.best', { date: formatShort(history.best.date, lang) })}</span>
           </div>
+          {history.days.length > 1 && (
+            <>
+              <TrendChart points={[]} trend={bestPerSession(history)} unit={unit!} lang={lang} label={t('exercise.chart')} />
+              <div className="muted">{t('exercise.chartLegend')}</div>
+            </>
+          )}
           <ul className={styles.historyList}>
             {history.days.slice(0, 8).map((d) => (
-              <li key={d.date}>
-                <span className="muted">{formatShort(d.date, lang)}</span>
-                <span>{d.values.join(' · ')}</span>
+              <li key={d.date} className={d.note ? styles.withNote : undefined}>
+                <div className={styles.historyTop}>
+                  <span className="muted">{formatShort(d.date, lang)}</span>
+                  <span>{d.values.join(' · ')}</span>
+                </div>
+                {d.note && <div className={styles.note}>“{d.note}”</div>}
               </li>
             ))}
           </ul>
@@ -98,10 +110,14 @@ export function ExerciseDetailPage() {
                   <span className={styles.ladderNum}>{i + 1}</span>
                   <span className={styles.ladderName}>{l(exerciseById[stepId].name)}</span>
                   {i === yourStep && <span className={styles.yourLevel}>{t('exercise.yourLevel')}</span>}
+                  {reached?.get(stepId) && i !== yourStep && (
+                    <span className="muted">{formatShort(reached.get(stepId)!, lang)}</span>
+                  )}
                 </Link>
               </li>
             ))}
           </ol>
+          {ladder.chain.steps.some((id) => reached?.has(id)) && <div className="muted">{t('exercise.ladderDates')}</div>}
         </Card>
       )}
     </Page>

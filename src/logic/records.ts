@@ -45,6 +45,8 @@ export interface ExerciseDay {
   date: ISODate
   /** Each logged set (and side), in the order done. */
   values: number[]
+  /** The session's note, if one was written. */
+  note?: string
 }
 
 export interface ExerciseHistory {
@@ -68,7 +70,7 @@ export function exerciseHistory(sessions: Session[], exerciseId: string): Exerci
     const values = sets.map(valueOf)
     if (sets[0].seconds !== undefined) unit = 'seconds'
     for (const v of values) if (!best || v > best.value) best = { value: v, date: session.date }
-    days.push({ date: session.date, values })
+    days.push({ date: session.date, values, ...(session.note && { note: session.note }) })
   }
   return best && { unit, best, days: days.reverse() }
 }
@@ -91,4 +93,22 @@ export function stallOf(history: ExerciseHistory | undefined, n = 3): Stall | un
   const start = bests[n - 1]
   if (bests.slice(0, n - 1).some((v) => v > start)) return undefined
   return { sessions: n, best: Math.max(...bests), unit: history.unit }
+}
+
+/** Best set per session, oldest first, for a chart. */
+export function bestPerSession(history: ExerciseHistory): { date: ISODate; value: number }[] {
+  return history.days.map((d) => ({ date: d.date, value: Math.max(...d.values) })).reverse()
+}
+
+/** The first day each exercise was logged: on a ladder, roughly when that step was reached. */
+export function firstDone(sessions: Session[]): Map<string, ISODate> {
+  const first = new Map<string, ISODate>()
+  for (const s of sessions) {
+    if (s.status !== 'done') continue
+    for (const set of s.sets) {
+      const seen = first.get(set.exerciseId)
+      if (!seen || s.date < seen) first.set(set.exerciseId, s.date)
+    }
+  }
+  return first
 }

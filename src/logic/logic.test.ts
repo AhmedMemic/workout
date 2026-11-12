@@ -10,7 +10,9 @@ import { currentValue, goalProgress, isReached } from './goals'
 import { testStatus } from './retest'
 import { badges, isEarned } from './badges'
 import { weekReview } from './weekReview'
-import { exerciseHistory, recordFor, sessionRecords, stallOf } from './records'
+import { bestPerSession, exerciseHistory, firstDone, recordFor, sessionRecords, stallOf } from './records'
+import { balanceStatus } from './balance'
+import { standHistory } from './standing'
 import { weekProgress } from './weekProgress'
 import { playOrder, trackName } from './music'
 import type { LoggedSet, Session } from '../db/db'
@@ -313,6 +315,38 @@ describe('exercise history', () => {
       ],
     })
     expect(exerciseHistory(sessions, 'lunge')).toBeUndefined()
+  })
+})
+
+describe('progress views', () => {
+  const s = (date: string, sets: Session['sets'], note?: string): Session => ({ date, templateId: 'strengthA', status: 'done', startedAt: Date.parse(date), sets, note })
+  const set = (exerciseId: string, reps: number, setNo = 1) => ({ exerciseId, reps, setNo })
+
+  it('charts the best set per session, oldest first, with notes in the history', () => {
+    const sessions = [s('2026-10-26', [set('pushup', 8), set('pushup', 9, 2)]), s('2026-10-28', [set('pushup', 10)], 'Left wrist sore')]
+    const h = exerciseHistory(sessions, 'pushup')!
+    expect(bestPerSession(h)).toEqual([{ date: '2026-10-26', value: 9 }, { date: '2026-10-28', value: 10 }])
+    expect(h.days[0].note).toBe('Left wrist sore')
+    expect(h.days[1].note).toBeUndefined()
+  })
+
+  it('finds when each exercise was first done', () => {
+    const first = firstDone([s('2026-10-28', [set('pushup', 10)]), s('2026-10-26', [set('pushup', 8), set('incline-pushup', 12)])])
+    expect(first.get('pushup')).toBe('2026-10-26')
+    expect(first.get('incline-pushup')).toBe('2026-10-26')
+  })
+
+  it('compares left and right balance and says when to leave the wall', () => {
+    const t = (date: string, l?: number, r?: number) => ({ date, balanceLeftSec: l, balanceRightSec: r })
+    expect(balanceStatus([t('2026-10-01', 12, 25)])).toMatchObject({ weaker: 'left', gap: 13, readyOffWall: false })
+    expect(balanceStatus([t('2026-10-01', 28, 31)]).weaker).toBeUndefined()
+    expect(balanceStatus([t('2026-11-01', 35, 40), t('2026-10-01', 10, 12)])).toMatchObject({ readyOffWall: true, latest: { date: '2026-11-01' } })
+    expect(balanceStatus([{ date: '2026-10-01', pushups: 10 }]).latest).toBeUndefined()
+  })
+
+  it('lists standing minutes per day, zero for days without a log', () => {
+    const h = standHistory([{ date: MON, standMin: 40 }], addDays(MON, 1), 3)
+    expect(h).toEqual([{ date: addDays(MON, -1), min: 0 }, { date: MON, min: 40 }, { date: addDays(MON, 1), min: 0 }])
   })
 })
 
