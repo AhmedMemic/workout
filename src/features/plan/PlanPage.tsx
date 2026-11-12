@@ -10,19 +10,21 @@ import { exerciseById } from '../../data/exercises'
 import { chains } from '../../data/chains'
 import { db } from '../../db/db'
 import { saveSetting, useSettings } from '../../db/settings'
-import { useLevels } from '../../db/queries'
+import { useDoneSessions, useLevels } from '../../db/queries'
+import { StallTip } from '../../components/StallTip'
 import { addDays, formatDay, startOfWeek, today as todayISO, weekday, weekdayName, type ISODate } from '../../logic/dates'
 import { planFor, programPosition, resetWeekSwaps, setsFor, swapDays, weekHasSwaps } from '../../logic/schedule'
-import { levelOf, resolveSlot, targetFor, type Levels } from '../../logic/progression'
+import { levelOf, resolveSlot, slotForBlock, targetFor, type Levels } from '../../logic/progression'
 import type { ChainId } from '../../data/types'
 import styles from './Plan.module.css'
 
-function Preview({ template, levels, sets }: { template: Template; levels: Levels; sets: number }) {
+function Preview({ template, levels, sets, block }: { template: Template; levels: Levels; sets: number; block: number }) {
   const { t, l } = useT()
   if (template.kind === 'strength') {
     return (
       <ul className={styles.preview}>
-        {template.pairs.flat().map((slot) => {
+        {template.pairs.flat().map((s) => {
+          const slot = slotForBlock(s, block)
           const id = resolveSlot(slot, levels)
           const target = targetFor(slot, id)
           return (
@@ -64,6 +66,7 @@ export function PlanPage() {
   const { t, l, lang } = useT()
   const settings = useSettings()
   const levels = useLevels()
+  const allDone = useDoneSessions()
   const date = todayISO()
   const [weekStart, setWeekStart] = useState(startOfWeek(date))
   const [open, setOpen] = useState<string | null>(date)
@@ -74,7 +77,7 @@ export function PlanPage() {
     return rows.filter((s) => s.status === 'done')
   }, [weekStart, weekEnd])
 
-  if (!settings || !levels || !done) return null
+  if (!settings || !levels || !done || !allDone) return null
   const pos = programPosition(settings.startDate, weekStart < settings.startDate ? settings.startDate : weekStart)
   const sets = setsFor(pos)
   const swaps = settings.planSwaps
@@ -127,7 +130,7 @@ export function PlanPage() {
               </button>
               {expanded && (main || targets.length > 0) && (
                 <div className={styles.dayBody}>
-                  {main && <Preview template={templates[main]} levels={levels} sets={sets} />}
+                  {main && <Preview template={templates[main]} levels={levels} sets={sets} block={pos.block} />}
                   {main && (
                     <Link to={`/workout/${main}`} className={buttonClass('secondary', true)}>
                       <Icon name="play" size={16} /> {t('today.start')} · {l(templates[main].name)}
@@ -172,6 +175,10 @@ export function PlanPage() {
             </li>
           ))}
         </ul>
+        {(Object.keys(chains) as ChainId[]).map((c) => {
+          const id = chains[c].steps[levelOf(c, levels)]
+          return <StallTip key={c} exerciseId={id} sessions={allDone} onLadder name={l(exerciseById[id].name)} />
+        })}
       </Card>
     </Page>
   )

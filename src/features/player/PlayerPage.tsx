@@ -65,8 +65,10 @@ function Player({ templateId }: { templateId: TemplateId }) {
   // spoken before the next cue, so the cue doesn't cut it off
   const recordCue = useRef(false)
 
-  const setsPerExercise = settings ? setsFor(programPosition(settings.startDate, today())) : 2
-  const steps = useMemo(() => buildSteps(templateId, setsPerExercise), [templateId, setsPerExercise])
+  const pos = settings ? programPosition(settings.startDate, today()) : undefined
+  const setsPerExercise = pos ? setsFor(pos) : 2
+  const block = pos?.block ?? 1
+  const steps = useMemo(() => buildSteps(templateId, setsPerExercise, block), [templateId, setsPerExercise, block])
 
   useEffect(() => {
     let cancelled = false

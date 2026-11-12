@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { addDays, daysInMonth, diffDays, startOfWeek, weekday } from './dates'
 import { isRestDay, planFor, programPosition, resetWeekSwaps, sessionOptionsFor, setsFor, swapDays, weekHasSwaps } from './schedule'
-import { levelOf, nextLevel, resolveSlot, targetFor } from './progression'
+import { levelOf, nextLevel, resolveSlot, slotForBlock, targetFor } from './progression'
 import { bestStreak, currentStreak } from './streak'
 import { challengeName, draftFrom, isDayComplete, targetForDay, tasksFromDrafts } from './challenge'
 import { templates, type StrengthTemplate } from '../data/templates'
@@ -10,7 +10,7 @@ import { currentValue, goalProgress, isReached } from './goals'
 import { testStatus } from './retest'
 import { badges, isEarned } from './badges'
 import { weekReview } from './weekReview'
-import { exerciseHistory, recordFor, sessionRecords } from './records'
+import { exerciseHistory, recordFor, sessionRecords, stallOf } from './records'
 import { weekProgress } from './weekProgress'
 import { playOrder, trackName } from './music'
 import type { LoggedSet, Session } from '../db/db'
@@ -313,6 +313,29 @@ describe('exercise history', () => {
       ],
     })
     expect(exerciseHistory(sessions, 'lunge')).toBeUndefined()
+  })
+})
+
+describe('stalls', () => {
+  const day = (date: string, ...values: number[]) => ({ date, values })
+  it('flags three sessions without beating the first of them', () => {
+    const h = (...days: ReturnType<typeof day>[]) => ({ unit: 'reps' as const, best: { value: 0, date: MON }, days })
+    // newest first
+    expect(stallOf(h(day('d3', 10, 9), day('d2', 10), day('d1', 10, 8)))).toEqual({ sessions: 3, best: 10, unit: 'reps' })
+    expect(stallOf(h(day('d3', 11), day('d2', 10), day('d1', 10)))).toBeUndefined()
+    expect(stallOf(h(day('d2', 10), day('d1', 10)))).toBeUndefined()
+    expect(stallOf(undefined)).toBeUndefined()
+  })
+})
+
+describe('accessory rotation', () => {
+  it('keeps the main lifts and rotates accessories per block', () => {
+    const a1b = (templates.strengthA as StrengthTemplate).pairs[0][1]
+    const a1a = (templates.strengthA as StrengthTemplate).pairs[0][0]
+    expect(slotForBlock(a1b, 1).exerciseId).toBe('one-arm-db-row')
+    expect(slotForBlock(a1b, 2).exerciseId).toBe('tempo-one-arm-row')
+    expect(slotForBlock(a1b, 4).exerciseId).toBe('one-arm-db-row')
+    expect(slotForBlock(a1a, 3)).toBe(a1a)
   })
 })
 

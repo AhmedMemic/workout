@@ -31,7 +31,7 @@ describe('static data', () => {
         for (const pair of t.pairs)
           for (const slot of pair) {
             expect(slot.exerciseId || slot.chain, slot.id).toBeTruthy()
-            if (slot.exerciseId) ids.push(slot.exerciseId)
+            if (slot.exerciseId) ids.push(slot.exerciseId, ...(slot.rotate ?? []))
           }
       }
       if (t.kind === 'flow') ids.push(...t.items.map((i) => i.exerciseId))
@@ -61,7 +61,7 @@ describe('static data', () => {
       if (t.kind !== 'strength') continue
       for (const pair of t.pairs)
         for (const slot of pair) {
-          const ids = slot.chain ? chains[slot.chain].steps : [slot.exerciseId!]
+          const ids = slot.chain ? chains[slot.chain].steps : [slot.exerciseId!, ...(slot.rotate ?? [])]
           for (const id of ids) {
             const m = exerciseById[id].measure
             expect(m === 'reps' ? slot.reps : slot.time, `${slot.id} → ${id} (${m})`).toBeDefined()

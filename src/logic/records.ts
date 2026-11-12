@@ -72,3 +72,23 @@ export function exerciseHistory(sessions: Session[], exerciseId: string): Exerci
   }
   return best && { unit, best, days: days.reverse() }
 }
+
+export interface Stall {
+  /** Sessions in a row without a better best set. */
+  sessions: number
+  /** Best set in that stretch. */
+  best: number
+  unit: ExerciseHistory['unit']
+}
+
+/**
+ * Stuck: the last `n` sessions of an exercise never beat the best set of the first of them.
+ * Each ladder step is its own exercise, so this only looks at the current level.
+ */
+export function stallOf(history: ExerciseHistory | undefined, n = 3): Stall | undefined {
+  if (!history || history.days.length < n) return undefined
+  const bests = history.days.slice(0, n).map((d) => Math.max(...d.values)) // newest first
+  const start = bests[n - 1]
+  if (bests.slice(0, n - 1).some((v) => v > start)) return undefined
+  return { sessions: n, best: Math.max(...bests), unit: history.unit }
+}

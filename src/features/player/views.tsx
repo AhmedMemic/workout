@@ -8,7 +8,8 @@ import { exerciseById, youtubeUrl } from '../../data/exercises'
 import { equipmentLabels } from '../../data/labels'
 import { chains } from '../../data/chains'
 import type { LoggedSet } from '../../db/db'
-import { setLevel } from '../../db/queries'
+import { setLevel, useDoneSessions } from '../../db/queries'
+import { StallTip } from '../../components/StallTip'
 import { levelOf, resolveSlot, targetFor, type Levels } from '../../logic/progression'
 import { formatClock, useCountdown, useElapsed } from '../../hooks/useCountdown'
 import { useWorkTimer } from '../../hooks/useWorkTimer'
@@ -148,6 +149,7 @@ interface SetViewProps {
 
 export function SetView({ step, side, levels, sets, next, readySec, onLog }: SetViewProps) {
   const { t, l } = useT()
+  const done = useDoneSessions()
   const exerciseId = resolveSlot(step.slot, levels)
   const ex = exerciseById[exerciseId]
   const target = targetFor(step.slot, exerciseId)
@@ -204,6 +206,10 @@ export function SetView({ step, side, levels, sets, next, readySec, onLog }: Set
         {!isTime && <Chip>3 s ↓</Chip>}
       </Chips>
       {switched && <div className={styles.toast}>{t('player.switched', { name: switched })}</div>}
+      {/* once per exercise: on its first set, before any side switch */}
+      {done && step.setNo === 1 && side !== 2 && !switched && (
+        <StallTip exerciseId={exerciseId} sessions={done} onLadder={!!step.slot.chain} />
+      )}
 
       {isTime && timing ? (
         <TimerPanel timer={timer} startLabel={t('player.startTimer')} />

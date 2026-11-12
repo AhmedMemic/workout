@@ -1038,4 +1038,46 @@ export const figures: Record<string, Figure> = {
       ],
     ],
   },
+  // ── Rotating accessories
+  'bird-dog': {
+    frames: [
+      ['start', { lines: [quadLegs, [[84, 84], [134, 84]], quadArm], head: [146, 80] }],
+      [
+        'end',
+        {
+          lines: [quadLegs, [[84, 84], [134, 84]], quadArm, [[84, 84], [50, 82], [22, 80]], [[134, 84], [168, 78]]],
+          head: [148, 70],
+          arrows: [[40, 70, 20, 68]],
+        },
+      ],
+    ],
+  },
+  'suitcase-march': {
+    frames: [
+      [
+        'start',
+        {
+          lines: [LEGS_STAND, [[100, 70], [122, 74], [118, 98]], [[101, 42], [102, 62], [104, 84]], [[101, 42], [112, 56], [122, 50]]],
+          head: HEAD_STAND,
+          over: [dbH(105, 88)],
+          under: [wall(150)],
+        },
+      ],
+      [
+        'end',
+        {
+          lines: [[[112, 118], [100, 118], [101, 94], [100, 70]], [[100, 70], [101, 40]], [[100, 70], [120, 80], [112, 102]], [[101, 42], [102, 62], [104, 84]], [[101, 42], [92, 56], [86, 66]]],
+          head: HEAD_STAND,
+          over: [dbH(105, 88)],
+          under: [wall(150)],
+        },
+      ],
+    ],
+  },
+  'hammer-curl': {
+    frames: [
+      ['start', { lines: [LEGS_STAND, [[101, 42], [102, 58], [103, 74]]], head: HEAD_STAND, over: [dbV(104, 80)] }],
+      ['end', { lines: [LEGS_STAND, [[101, 42], [102, 64], [118, 50]]], head: HEAD_STAND, over: [dbV(121, 46)], arrows: [[140, 76, 140, 54]] }],
+    ],
+  },
 }

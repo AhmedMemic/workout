@@ -15,6 +15,12 @@ export interface Slot {
   reps?: Range
   time?: Range
   note?: L10n
+  /**
+   * Fixed slots only: more exercises to rotate through, one per 4-week block (block 1 uses
+   * `exerciseId`). Main lifts stay on their ladders so they keep progressing; the accessories
+   * change for variety.
+   */
+  rotate?: string[]
 }
 
 /** One item in a guided flow (warm-up, desk reset, cool-down). */
@@ -105,7 +111,7 @@ export const templates: Record<TemplateId, Template> = {
     pairs: [
       [
         { id: 'A1a', chain: 'squat', reps: reps(12, 20) },
-        { id: 'A1b', exerciseId: 'one-arm-db-row', reps: reps(12, 20) },
+        { id: 'A1b', exerciseId: 'one-arm-db-row', rotate: ['tempo-one-arm-row', 'band-row'], reps: reps(12, 20) },
       ],
       [
         { id: 'A2a', chain: 'push', reps: reps(6, 15) },
@@ -113,7 +119,7 @@ export const templates: Record<TemplateId, Template> = {
       ],
       [
         { id: 'A3a', chain: 'overhead', reps: reps(10, 15), time: reps(15, 30) },
-        { id: 'A3b', exerciseId: 'dead-bug', reps: reps(8, 8) },
+        { id: 'A3b', exerciseId: 'dead-bug', rotate: ['bird-dog'], reps: reps(8, 8) },
       ],
     ],
   },
@@ -132,12 +138,12 @@ export const templates: Record<TemplateId, Template> = {
         { id: 'B1b', chain: 'row', reps: reps(6, 15) },
       ],
       [
-        { id: 'B2a', exerciseId: 'glute-bridge', reps: reps(15, 25) },
-        { id: 'B2b', exerciseId: 'floor-press', reps: reps(12, 20) },
+        { id: 'B2a', exerciseId: 'glute-bridge', rotate: ['single-leg-glute-bridge'], reps: reps(15, 25) },
+        { id: 'B2b', exerciseId: 'floor-press', rotate: ['pushup'], reps: reps(12, 20) },
       ],
       [
         { id: 'B3a', chain: 'hamstrings', reps: reps(8, 15), time: reps(20, 40) },
-        { id: 'B3b', exerciseId: 'side-plank', time: reps(20, 40) },
+        { id: 'B3b', exerciseId: 'side-plank', rotate: ['suitcase-march'], time: reps(20, 40) },
       ],
     ],
   },
@@ -153,14 +159,14 @@ export const templates: Record<TemplateId, Template> = {
     pairs: [
       [
         { id: 'C1a', chain: 'lunge', reps: reps(8, 15) },
-        { id: 'C1b', exerciseId: 'bent-over-row', reps: reps(15, 20) },
+        { id: 'C1b', exerciseId: 'bent-over-row', rotate: ['band-row', 'one-arm-db-row'], reps: reps(15, 20) },
       ],
       [
         { id: 'C2a', exerciseId: 'tempo-pushup', reps: reps(5, 12) },
         { id: 'C2b', chain: 'singleLegHinge', reps: reps(8, 12) },
       ],
       [
-        { id: 'C3a', exerciseId: 'overhead-triceps-extension', reps: reps(10, 15) },
+        { id: 'C3a', exerciseId: 'overhead-triceps-extension', rotate: ['hammer-curl'], reps: reps(10, 15) },
         { id: 'C3b', chain: 'core', reps: reps(6, 10), time: reps(30, 60) },
       ],
     ],

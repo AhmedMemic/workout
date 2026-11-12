@@ -13,6 +13,13 @@ export function clampLevel(chain: ChainId, step: number): number {
   return Math.min(Math.max(step, 0), chains[chain].steps.length - 1)
 }
 
+/** The slot as it is in a given 4-week block: a rotating accessory gets that block's exercise. */
+export function slotForBlock(slot: Slot, block: number): Slot {
+  if (!slot.rotate?.length || !slot.exerciseId) return slot
+  const options = [slot.exerciseId, ...slot.rotate]
+  return { ...slot, exerciseId: options[(Math.max(1, block) - 1) % options.length] }
+}
+
 /** The exercise a slot uses right now. */
 export function resolveSlot(slot: Slot, levels: Levels): string {
   if (slot.chain) return chains[slot.chain].steps[levelOf(slot.chain, levels)]

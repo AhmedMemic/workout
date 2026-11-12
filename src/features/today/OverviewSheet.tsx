@@ -59,7 +59,8 @@ export function OverviewSheet({ templateId, open, onClose }: { templateId: Templ
   const levels = useLevels()
   if (!settings || !levels) return null
 
-  const steps = overviewSteps(buildSteps(templateId, setsFor(programPosition(settings.startDate, today()))))
+  const pos = programPosition(settings.startDate, today())
+  const steps = overviewSteps(buildSteps(templateId, setsFor(pos), pos.block))
   const sections = [...new Set(steps.map((s) => s.section))]
 
   return (

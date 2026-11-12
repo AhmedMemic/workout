@@ -1,6 +1,7 @@
 import type { L10n } from '../../i18n/I18nProvider'
 import { exerciseById } from '../../data/exercises'
 import { templates, type FlowTemplate, type Slot, type TemplateId } from '../../data/templates'
+import { slotForBlock } from '../../logic/progression'
 
 export type Section = 'warmUp' | 'main' | 'gripFinisher' | 'coolDown'
 
@@ -76,12 +77,13 @@ function flowSteps(t: FlowTemplate, section: Section): Step[] {
 }
 
 /** Turns a template into the ordered list of screens the player walks through. */
-export function buildSteps(templateId: TemplateId, sets: number): Step[] {
+export function buildSteps(templateId: TemplateId, sets: number, block = 1): Step[] {
   const t = templates[templateId]
   switch (t.kind) {
     case 'strength': {
       const steps: Step[] = [...flowSteps(templates[t.warmUp] as FlowTemplate, 'warmUp')]
-      for (const [a, b] of t.pairs) {
+      for (const pair of t.pairs) {
+        const [a, b] = pair.map((slot) => slotForBlock(slot, block))
         for (let setNo = 1; setNo <= sets; setNo++) {
           steps.push({ type: 'set', section: 'main', slot: a, setNo, totalSets: sets, restAfter: 0 })
           steps.push({ type: 'set', section: 'main', slot: b, setNo, totalSets: sets, restAfter: t.restSec })
