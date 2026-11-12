@@ -1,6 +1,6 @@
 import type { L10n } from '../../i18n/I18nProvider'
 import { exerciseById } from '../../data/exercises'
-import { templates, type FlowTemplate, type Slot, type TemplateId } from '../../data/templates'
+import { templates, type FlowItem, type FlowTemplate, type Slot, type TemplateId } from '../../data/templates'
 import { slotForBlock } from '../../logic/progression'
 
 export type Section = 'warmUp' | 'main' | 'gripFinisher' | 'coolDown'
@@ -54,9 +54,9 @@ export interface WalkStep {
 
 export type Step = SetStep | RepsStep | TimedStep | RestStep | WalkStep
 
-function flowSteps(t: FlowTemplate, section: Section): Step[] {
+function flowSteps(items: FlowItem[], section: Section): Step[] {
   const steps: Step[] = []
-  for (const item of t.items) {
+  for (const item of items) {
     const perSide = item.perSide ?? !!exerciseById[item.exerciseId].perSide
     if (item.seconds) {
       if (perSide) {
@@ -77,12 +77,19 @@ function flowSteps(t: FlowTemplate, section: Section): Step[] {
 }
 
 /** Turns a template into the ordered list of screens the player walks through. */
-export function buildSteps(templateId: TemplateId, sets: number, block = 1): Step[] {
+/**
+ * `short` is the busy-day strength session (15–20 min): a quick pulse raiser plus the warm-up's
+ * last, most specific drills, the first two pairs at full sets, no grip finisher, and the
+ * cool-down's first two stretches.
+ */
+export function buildSteps(templateId: TemplateId, sets: number, block = 1, short = false): Step[] {
   const t = templates[templateId]
   switch (t.kind) {
     case 'strength': {
-      const steps: Step[] = [...flowSteps(templates[t.warmUp] as FlowTemplate, 'warmUp')]
-      for (const pair of t.pairs) {
+      const warm = (templates[t.warmUp] as FlowTemplate).items
+      const cool = (templates[t.coolDown] as FlowTemplate).items
+      const steps: Step[] = [...flowSteps(short ? [{ ...warm[0], seconds: 60 }, ...warm.slice(-3)] : warm, 'warmUp')]
+      for (const pair of short ? t.pairs.slice(0, 2) : t.pairs) {
         const [a, b] = pair.map((slot) => slotForBlock(slot, block))
         for (let setNo = 1; setNo <= sets; setNo++) {
           steps.push({ type: 'set', section: 'main', slot: a, setNo, totalSets: sets, restAfter: 0 })
@@ -90,12 +97,12 @@ export function buildSteps(templateId: TemplateId, sets: number, block = 1): Ste
           steps.push({ type: 'rest', section: 'main', seconds: t.restSec })
         }
       }
-      steps.push(...flowSteps(templates.gripFinisher as FlowTemplate, 'gripFinisher'))
-      steps.push(...flowSteps(templates[t.coolDown] as FlowTemplate, 'coolDown'))
+      if (!short) steps.push(...flowSteps((templates.gripFinisher as FlowTemplate).items, 'gripFinisher'))
+      steps.push(...flowSteps(short ? cool.slice(0, 2) : cool, 'coolDown'))
       return steps
     }
     case 'flow':
-      return flowSteps(t, 'main')
+      return flowSteps(t.items, 'main')
     case 'rounds': {
       const steps: Step[] = []
       for (let r = 1; r <= t.rounds; r++) {

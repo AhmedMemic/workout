@@ -70,6 +70,11 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
           {isDone ? t('today.again') : t('today.start')}
         </Link>
       </div>
+      {template.kind === 'strength' && !isDone && (
+        <Link to={`/workout/${id}?short=1`} className={buttonClass('secondary', true)}>
+          <Icon name="clock" size={18} /> {t('today.short')}
+        </Link>
+      )}
       <OverviewSheet templateId={id} open={overview} onClose={() => setOverview(false)} />
     </Card>
   )

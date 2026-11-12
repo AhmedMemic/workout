@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Button, buttonClass } from '../../components/ui'
 import { Icon } from '../../components/Icon'
 import { Sheet } from '../../components/Sheet'
@@ -48,6 +48,9 @@ function Player({ templateId }: { templateId: TemplateId }) {
   const tracks = useTracks()
   const music = useMusic()
   const template = templates[templateId]
+  const [params] = useSearchParams()
+  // from the link at first; a resumed session keeps the version it was started in
+  const [short, setShort] = useState(template.kind === 'strength' && params.get('short') === '1')
 
   const [phase, setPhase] = useState<Phase>('loading')
   const [session, setSession] = useState<Session | null>(null)
@@ -68,13 +71,14 @@ function Player({ templateId }: { templateId: TemplateId }) {
   const pos = settings ? programPosition(settings.startDate, today()) : undefined
   const setsPerExercise = pos ? setsFor(pos) : 2
   const block = pos?.block ?? 1
-  const steps = useMemo(() => buildSteps(templateId, setsPerExercise, block), [templateId, setsPerExercise, block])
+  const steps = useMemo(() => buildSteps(templateId, setsPerExercise, block, short), [templateId, setsPerExercise, block, short])
 
   useEffect(() => {
     let cancelled = false
-    void startOrResume(templateId).then((s) => {
+    void startOrResume(templateId, short).then((s) => {
       if (cancelled) return
       setSession(s)
+      setShort(!!s.short)
       setSets(s.sets)
       setCursor(s.cursor ?? 0)
       const resumed = (s.cursor ?? 0) > 0 || s.sets.length > 0
@@ -84,6 +88,7 @@ function Player({ templateId }: { templateId: TemplateId }) {
     return () => {
       cancelled = true
     }
+    // `short` is only the starting choice; the loaded session decides after this
   }, [templateId])
 
   // the in-app music belongs to the workout; leaving the player stops it
@@ -195,7 +200,7 @@ function Player({ templateId }: { templateId: TemplateId }) {
         <div className={styles.header}>
           <div className="label">{l(template.description)}</div>
           <h1 className={styles.name}>{l(template.name)}</h1>
-          <div className="muted">{t('today.minutes', { n: template.minutes })}</div>
+          <div className="muted">{short ? t('player.shortVersion') : t('today.minutes', { n: template.minutes })}</div>
           {template.kind === 'strength' && <div className="muted">{t('player.setsThisWeek', { n: setsPerExercise })}</div>}
         </div>
         <div className={styles.footer}>

@@ -30,6 +30,8 @@ export interface Session {
   /** How it felt, from 1 (very easy) to 5 (too hard). */
   rating?: SessionRating
   note?: string
+  /** The busy-day version of a strength session. */
+  short?: boolean
 }
 
 export type SessionRating = 1 | 2 | 3 | 4 | 5

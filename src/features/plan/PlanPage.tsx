@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Page } from '../../components/Page'
@@ -13,7 +13,7 @@ import { saveSetting, useSettings } from '../../db/settings'
 import { useDoneSessions, useLevels } from '../../db/queries'
 import { StallTip } from '../../components/StallTip'
 import { addDays, formatDay, startOfWeek, today as todayISO, weekday, weekdayName, type ISODate } from '../../logic/dates'
-import { planFor, programPosition, resetWeekSwaps, setsFor, swapDays, weekHasSwaps } from '../../logic/schedule'
+import { planFor, programPosition, resetWeekSwaps, setsFor, swapDays, weekHasSwaps, type PlanSwaps } from '../../logic/schedule'
 import { levelOf, resolveSlot, slotForBlock, targetFor, type Levels } from '../../logic/progression'
 import type { ChainId } from '../../data/types'
 import styles from './Plan.module.css'
@@ -70,6 +70,13 @@ export function PlanPage() {
   const date = todayISO()
   const [weekStart, setWeekStart] = useState(startOfWeek(date))
   const [open, setOpen] = useState<string | null>(date)
+  // the swaps before the last change, offered back for a few seconds
+  const [undo, setUndo] = useState<{ prev: PlanSwaps; text: string } | null>(null)
+  useEffect(() => {
+    if (!undo) return
+    const id = setTimeout(() => setUndo(null), 8000)
+    return () => clearTimeout(id)
+  }, [undo])
 
   const weekEnd = addDays(weekStart, 6)
   const done = useLiveQuery(async () => {
@@ -90,7 +97,12 @@ export function PlanPage() {
     return { d, plan, main: plan.options[0], isDone, movable: d >= date && !isDone }
   })
 
-  const swap = (a: ISODate, b: ISODate) => void saveSetting('planSwaps', swapDays(swaps, a, b))
+  const change = (next: PlanSwaps, text: string) => {
+    setUndo({ prev: swaps, text })
+    void saveSetting('planSwaps', next)
+  }
+  const dayName = (d: ISODate) => weekdayName(weekday(d), lang)
+  const swap = (a: ISODate, b: ISODate) => change(swapDays(swaps, a, b), t('plan.swapped', { a: dayName(a), b: dayName(b) }))
 
   return (
     <Page
@@ -107,6 +119,24 @@ export function PlanPage() {
         <button type="button" className={styles.navButton} onClick={() => setWeekStart(addDays(weekStart, 7))} aria-label={t('plan.nextWeek')}>
           <Icon name="chevronRight" />
         </button>
+      </div>
+
+      <div aria-live="polite">
+        {undo && (
+          <div className={styles.undo}>
+            <span>{undo.text}</span>
+            <button
+              type="button"
+              className={styles.undoButton}
+              onClick={() => {
+                void saveSetting('planSwaps', undo.prev)
+                setUndo(null)
+              }}
+            >
+              {t('plan.undo')}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className={styles.days}>
@@ -156,7 +186,7 @@ export function PlanPage() {
       </div>
 
       {weekHasSwaps(swaps, weekStart) && (
-        <Button variant="secondary" block onClick={() => void saveSetting('planSwaps', resetWeekSwaps(swaps, weekStart))}>
+        <Button variant="secondary" block onClick={() => change(resetWeekSwaps(swaps, weekStart), t('plan.wasReset'))}>
           {t('plan.resetWeek')}
         </Button>
       )}

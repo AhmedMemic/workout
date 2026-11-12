@@ -64,6 +64,7 @@ src/
 - **Equipment:** 2×5 kg and 1×7 kg dumbbells, a stability ball, grip tools, a pedal resistance band, chair, wall, doorframe. No mat and no usable table, so no table exercises. A pull-up bar is optional.
 - **Player:** timed work has a get-ready countdown (`readySec` setting, skipped right after a rest) and stops at zero with a beep. Voice cues use the Web Speech API (`say()` in `hooks/device.ts`), falling back to a Croatian or Serbian voice for Bosnian.
 - **Warm-up / cool-down:** each strength template names its own (`warmUp`/`coolDown`, matched to its lifts). Warm-ups are dynamic (RAMP) with one balance drill; cool-downs are static holds of about 30–60 s.
+- **Short session:** strength days have a busy-day version (`?short=1`, stored as `session.short`): warm-up pulse plus its last 3 drills, the first two pairs at full sets, no grip finisher, and the first two cool-down stretches. It counts as done and can still level up.
 - **Apartment:** exercises must be low-noise, so no jumping.
 - **Balance:** Ahmed's single-leg balance is weak. Single-leg strength work starts supported (wall or doorframe): the `lunge` and `singleLegHinge` ladders start at the supported version. Balance practice is in the warm-up and desk resets, and the re-tests include a one-leg stand per side.
 - **Goals** (`goals` table, schema v2) track weight (7-day average) or a test metric, from a start value to a target; a goal is stamped `reachedAt` once and stays reached.

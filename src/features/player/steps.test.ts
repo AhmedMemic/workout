@@ -20,6 +20,17 @@ describe('buildSteps', () => {
     expect(new Set([ids('strengthA', 'coolDown'), ids('strengthB', 'coolDown'), ids('strengthC', 'coolDown')]).size).toBe(3)
   })
 
+  it('short: two pairs at full sets, no grip, trimmed warm-up and cool-down', () => {
+    const full = buildSteps('strengthA', 2)
+    const short = buildSteps('strengthA', 2, 1, true)
+    expect(short.filter((s) => s.type === 'set')).toHaveLength(2 * 2 * 2)
+    expect(short.some((s) => s.section === 'gripFinisher')).toBe(false)
+    const count = (steps: typeof full, section: string) => steps.filter((s) => s.section === section).length
+    expect(count(short, 'warmUp')).toBeLessThan(count(full, 'warmUp'))
+    expect(count(short, 'coolDown')).toBeLessThan(count(full, 'coolDown'))
+    expect(short[0]).toMatchObject({ type: 'timed', exerciseId: 'march-in-place', seconds: 60 })
+  })
+
   it('per-side timed items become two steps', () => {
     const steps = buildSteps('coolDown', 1)
     expect(steps.filter((s) => s.type === 'timed' && s.exerciseId === 'hip-flexor-stretch')).toHaveLength(2)

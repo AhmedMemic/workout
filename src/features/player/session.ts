@@ -7,15 +7,18 @@ import { today } from '../../logic/dates'
 import { levelOf, nextLevel, type Levels } from '../../logic/progression'
 import type { Step } from './steps'
 
-/** Resumes today's unfinished session of this template, or starts a new one. Older unfinished ones are dropped. */
-export async function startOrResume(templateId: TemplateId): Promise<Session> {
+/**
+ * Resumes today's unfinished session of this template (in whichever version it was started),
+ * or starts a new one. Older unfinished ones are dropped.
+ */
+export async function startOrResume(templateId: TemplateId, short = false): Promise<Session> {
   const date = today()
   const active = await db.sessions.where('status').equals('active').toArray()
   const match = active.find((s) => s.templateId === templateId && s.date === date)
   const stale = active.filter((s) => s !== match).map((s) => s.id!)
   if (stale.length) await db.sessions.bulkDelete(stale)
   if (match) return match
-  const session: Session = { date, templateId, status: 'active', startedAt: Date.now(), sets: [], cursor: 0 }
+  const session: Session = { date, templateId, status: 'active', startedAt: Date.now(), sets: [], cursor: 0, ...(short && { short }) }
   session.id = await db.sessions.add(session)
   return session
 }
