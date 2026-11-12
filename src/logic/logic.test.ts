@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { addDays, daysInMonth, diffDays, startOfWeek, weekday } from './dates'
-import { isRestDay, planFor, programPosition, sessionOptionsFor, setsFor } from './schedule'
+import { isRestDay, planFor, programPosition, resetWeekSwaps, sessionOptionsFor, setsFor, swapDays, weekHasSwaps } from './schedule'
 import { levelOf, nextLevel, resolveSlot, targetFor } from './progression'
 import { bestStreak, currentStreak } from './streak'
 import { isDayComplete, targetForDay } from './challenge'
@@ -54,6 +54,24 @@ describe('schedule', () => {
     const tue = addDays(MON, 1)
     expect(sessionOptionsFor(tue, new Map()).makeUp).toBe('strengthA')
     expect(sessionOptionsFor(tue, new Map([[MON, ['strengthA']]])).makeUp).toBeUndefined()
+  })
+
+  it('swaps two days and undoes cleanly', () => {
+    const tue = addDays(MON, 1)
+    const sun = addDays(MON, 6)
+    const swaps = swapDays({}, MON, tue)
+    expect(planFor(MON, swaps).kind).toBe('cardio')
+    expect(planFor(tue, swaps).options[0]).toBe('strengthA')
+    // Mon is cardio now, so Tue's strength is not a make-up
+    expect(sessionOptionsFor(tue, new Map(), swaps).makeUp).toBeUndefined()
+    expect(swapDays(swaps, MON, tue)).toEqual({})
+    // a chain of swaps: Mon's strength ends up on Sunday, Sunday's rest on Tuesday
+    const chained = swapDays(swaps, tue, sun)
+    expect(planFor(sun, chained).options[0]).toBe('strengthA')
+    expect(isRestDay(tue, chained)).toBe(true)
+    expect(weekHasSwaps(chained, MON)).toBe(true)
+    expect(weekHasSwaps(chained, addDays(MON, 7))).toBe(false)
+    expect(resetWeekSwaps({ ...chained, [addDays(MON, 7)]: 2 }, MON)).toEqual({ [addDays(MON, 7)]: 2 })
   })
 })
 

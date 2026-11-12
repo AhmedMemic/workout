@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Icon } from '../../components/Icon'
 import { useT } from '../../i18n/I18nProvider'
 import { useDoneSessions } from '../../db/queries'
+import { useSettings } from '../../db/settings'
 import { weekday, weekdayName, type ISODate } from '../../logic/dates'
 import { weekProgress, type DayState } from '../../logic/weekProgress'
 import type { MessageKey } from '../../i18n/en'
@@ -13,8 +14,9 @@ const stateKey = (s: DayState) => `week.${s}` as MessageKey
 export function WeekStrip({ date }: { date: ISODate }) {
   const { t, lang } = useT()
   const sessions = useDoneSessions()
-  if (!sessions) return null
-  const week = weekProgress(sessions, date)
+  const settings = useSettings()
+  if (!sessions || !settings) return null
+  const week = weekProgress(sessions, date, settings.planSwaps)
 
   return (
     <Link to="/plan" className={styles.strip}>

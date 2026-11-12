@@ -20,13 +20,45 @@ const week: DayPlan[] = [
   { kind: 'rest', options: [] },
 ]
 
-export function planFor(date: ISODate): DayPlan {
-  return week[weekday(date)]
+/**
+ * Days the user moved around on the Plan screen: date → weekday index (0 = Mon) of the
+ * default plan that day now follows. Missing dates keep their own weekday's plan.
+ */
+export type PlanSwaps = Record<ISODate, number>
+
+const slotOf = (date: ISODate, swaps: PlanSwaps): number => swaps[date] ?? weekday(date)
+
+export function planFor(date: ISODate, swaps: PlanSwaps = {}): DayPlan {
+  return week[slotOf(date, swaps)]
 }
 
 /** Planned rest day: an empty one doesn't break the streak. */
-export function isRestDay(date: ISODate): boolean {
-  return planFor(date).kind === 'rest'
+export function isRestDay(date: ISODate, swaps: PlanSwaps = {}): boolean {
+  return planFor(date, swaps).kind === 'rest'
+}
+
+/** Swap what two days are planned to do. Days back on their own plan drop out of the map. */
+export function swapDays(swaps: PlanSwaps, a: ISODate, b: ISODate): PlanSwaps {
+  const next = { ...swaps }
+  const set = (d: ISODate, slot: number) => {
+    if (slot === weekday(d)) delete next[d]
+    else next[d] = slot
+  }
+  const sa = slotOf(a, swaps)
+  set(a, slotOf(b, swaps))
+  set(b, sa)
+  return next
+}
+
+/** Drop every swap in the Monday–Sunday week starting at weekStart. */
+export function resetWeekSwaps(swaps: PlanSwaps, weekStart: ISODate): PlanSwaps {
+  const end = addDays(weekStart, 6)
+  return Object.fromEntries(Object.entries(swaps).filter(([d]) => d < weekStart || d > end))
+}
+
+export function weekHasSwaps(swaps: PlanSwaps, weekStart: ISODate): boolean {
+  const end = addDays(weekStart, 6)
+  return Object.keys(swaps).some((d) => d >= weekStart && d <= end)
 }
 
 export interface ProgramPosition {
@@ -55,16 +87,20 @@ export function setsFor(pos: ProgramPosition): number {
  * Today's main session. If today is not a strength day and yesterday's strength
  * session was skipped, offer it as a make-up first.
  */
-export function sessionOptionsFor(date: ISODate, doneByDate: Map<ISODate, TemplateId[]>): {
+export function sessionOptionsFor(
+  date: ISODate,
+  doneByDate: Map<ISODate, TemplateId[]>,
+  swaps: PlanSwaps = {},
+): {
   plan: DayPlan
   options: TemplateId[]
   makeUp?: TemplateId
 } {
-  const plan = planFor(date)
+  const plan = planFor(date, swaps)
   if (plan.kind === 'strength') return { plan, options: plan.options }
 
   const yesterday = addDays(date, -1)
-  const yPlan = planFor(yesterday)
+  const yPlan = planFor(yesterday, swaps)
   const yDone = doneByDate.get(yesterday) ?? []
   if (yPlan.kind === 'strength' && !yDone.includes(yPlan.options[0])) {
     const makeUp = yPlan.options[0]

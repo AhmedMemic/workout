@@ -6,7 +6,7 @@ import { isDayComplete } from './challenge'
 import { daysInMonth, monthKey, type ISODate } from './dates'
 import { weightAverage } from './goals'
 import type { Levels } from './progression'
-import { isRestDay } from './schedule'
+import { isRestDay, type PlanSwaps } from './schedule'
 import { bestStreak } from './streak'
 
 export interface AllData {
@@ -51,7 +51,7 @@ export function fullChallengeMonths(data: AllData, today: ISODate): number {
   return n
 }
 
-export function computeStats(data: AllData, today: ISODate): BadgeStats {
+export function computeStats(data: AllData, today: ISODate, swaps: PlanSwaps = {}): BadgeStats {
   const done = data.sessions.filter((s) => s.status === 'done')
   const weighIns = data.daily.filter((d) => d.weightKg)
   const latest = weighIns.at(-1)
@@ -63,7 +63,7 @@ export function computeStats(data: AllData, today: ISODate): BadgeStats {
   return {
     workouts: done.filter((s) => !isDeskReset(s)).length,
     deskResets: data.daily.filter((d) => d.deskReset).length,
-    bestStreak: bestStreak(activeDates(data), isRestDay),
+    bestStreak: bestStreak(activeDates(data), (d) => isRestDay(d, swaps)),
     levelUps,
     fullChallengeMonths: fullChallengeMonths(data, today),
     weightLost: weighIns.length && nowAvg !== undefined ? Math.max(0, Math.round((weighIns[0].weightKg! - nowAvg) * 10) / 10) : 0,

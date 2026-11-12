@@ -49,8 +49,8 @@ export function TodayPage() {
   if (!settings || !doneByDate) return null
 
   const pos = programPosition(settings.startDate, date)
-  const { options, makeUp } = sessionOptionsFor(date, doneByDate)
-  const streak = active ? currentStreak(active, date, isRestDay) : 0
+  const { options, makeUp } = sessionOptionsFor(date, doneByDate, settings.planSwaps)
+  const streak = active ? currentStreak(active, date, (d) => isRestDay(d, settings.planSwaps)) : 0
 
   const todayDone = challengeDays?.get(date) ?? []
   const tasks = challenge?.tasks ?? []

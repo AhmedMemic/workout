@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from './db'
 import { today } from '../logic/dates'
+import type { PlanSwaps } from '../logic/schedule'
 
 export interface Settings {
   /** Day 1 of the program (blocks and weeks count from here). */
@@ -30,6 +31,8 @@ export interface Settings {
   standForMin: number
   sitForMin: number
   deskReminders: boolean
+  /** Days moved around on the Plan screen (see logic/schedule). */
+  planSwaps: PlanSwaps
 }
 
 export const defaultSettings = (): Settings => ({
@@ -49,6 +52,7 @@ export const defaultSettings = (): Settings => ({
   standForMin: 30,
   sitForMin: 45,
   deskReminders: true,
+  planSwaps: {},
 })
 
 export async function loadSettings(): Promise<Settings> {

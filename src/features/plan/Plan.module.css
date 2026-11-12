@@ -104,3 +104,15 @@
 .previewName {
   flex: 1;
 }
+
+.moved {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.swap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

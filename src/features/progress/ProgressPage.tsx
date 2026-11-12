@@ -175,7 +175,7 @@ export function ProgressPage() {
   const status = testStatus(settings.startDate, data.tests.map((r) => r.date), date)
 
   // ── milestones
-  const stats = computeStats(data, date)
+  const stats = computeStats(data, date, settings.planSwaps)
   const earnedCount = badges.filter((b) => isEarned(b, stats)).length
   const current = (m: GoalMetric) => currentValue(m, data.daily, data.tests)
 
@@ -196,7 +196,7 @@ export function ProgressPage() {
 
       {data.sessions.some((s) => s.status === 'done') && (
         // the week so far on Sunday, otherwise the last full week
-        <WeekReviewCard review={weekReview(data, weekday(date) === 6 ? weekStart : addDays(weekStart, -7), settings.stepGoal)} />
+        <WeekReviewCard review={weekReview(data, weekday(date) === 6 ? weekStart : addDays(weekStart, -7), settings.stepGoal, settings.planSwaps)} />
       )}
 
       <Card>

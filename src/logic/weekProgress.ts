@@ -1,7 +1,7 @@
 import type { Session } from '../db/db'
 import type { TemplateId } from '../data/templates'
 import { addDays, startOfWeek, type ISODate } from './dates'
-import { planFor, type DayKind } from './schedule'
+import { planFor, type DayKind, type PlanSwaps } from './schedule'
 
 const DESK: TemplateId[] = ['deskReset', 'deskResetShort']
 
@@ -20,15 +20,15 @@ export interface WeekProgress {
 }
 
 /**
- * This week's planned workouts (Mon–Sat; Sunday is rest) and which are done. A strength
+ * This week's planned workouts (rest days excluded) and which are done. A strength
  * day also counts when it was made up the next day. Desk resets don't count here.
  */
-export function weekProgress(sessions: Session[], date: ISODate): WeekProgress {
+export function weekProgress(sessions: Session[], date: ISODate, swaps: PlanSwaps = {}): WeekProgress {
   const workoutDays = new Set(sessions.filter((s) => s.status === 'done' && !DESK.includes(s.templateId)).map((s) => s.date))
   const weekStart = startOfWeek(date)
   const days = Array.from({ length: 7 }, (_, i): WeekDay => {
     const d = addDays(weekStart, i)
-    const kind = planFor(d).kind
+    const kind = planFor(d, swaps).kind
     const done = workoutDays.has(d) || (kind === 'strength' && workoutDays.has(addDays(d, 1)))
     let state: DayState
     if (kind === 'rest') state = 'rest'

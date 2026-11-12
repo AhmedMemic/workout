@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Page } from '../../components/Page'
 import { Icon } from '../../components/Icon'
-import { Card, buttonClass } from '../../components/ui'
+import { Button, Card, Chips, ToggleChip, buttonClass } from '../../components/ui'
 import { useT } from '../../i18n/I18nProvider'
 import { templates, type Template } from '../../data/templates'
 import { exerciseById } from '../../data/exercises'
 import { chains } from '../../data/chains'
 import { db } from '../../db/db'
-import { useSettings } from '../../db/settings'
+import { saveSetting, useSettings } from '../../db/settings'
 import { useLevels } from '../../db/queries'
-import { addDays, formatDay, startOfWeek, today as todayISO } from '../../logic/dates'
-import { planFor, programPosition, setsFor } from '../../logic/schedule'
+import { addDays, formatDay, startOfWeek, today as todayISO, weekday, weekdayName, type ISODate } from '../../logic/dates'
+import { planFor, programPosition, resetWeekSwaps, setsFor, swapDays, weekHasSwaps } from '../../logic/schedule'
 import { levelOf, resolveSlot, targetFor, type Levels } from '../../logic/progression'
 import type { ChainId } from '../../data/types'
 import styles from './Plan.module.css'
@@ -77,6 +77,17 @@ export function PlanPage() {
   if (!settings || !levels || !done) return null
   const pos = programPosition(settings.startDate, weekStart < settings.startDate ? settings.startDate : weekStart)
   const sets = setsFor(pos)
+  const swaps = settings.planSwaps
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(weekStart, i)
+    const plan = planFor(d, swaps)
+    const isDone = done.some((s) => s.date === d && plan.options.includes(s.templateId))
+    // past and finished days stay put, so history keeps matching what was done
+    return { d, plan, main: plan.options[0], isDone, movable: d >= date && !isDone }
+  })
+
+  const swap = (a: ISODate, b: ISODate) => void saveSetting('planSwaps', swapDays(swaps, a, b))
 
   return (
     <Page
@@ -96,14 +107,11 @@ export function PlanPage() {
       </div>
 
       <div className={styles.days}>
-        {Array.from({ length: 7 }, (_, i) => {
-          const d = addDays(weekStart, i)
-          const plan = planFor(d)
-          const main = plan.options[0]
-          const isDone = done.some((s) => s.date === d && plan.options.includes(s.templateId))
+        {days.map(({ d, plan, main, isDone, movable }) => {
           const missed = !isDone && plan.kind === 'strength' && d >= settings.startDate && d < date
           const status = isDone ? t('plan.done') : d === date ? t('plan.today') : missed ? t('plan.missed') : ''
           const expanded = open === d
+          const targets = movable ? days.filter((o) => o.movable && o.d !== d) : []
           return (
             <div key={d} className={[styles.day, d === date && styles.isToday].filter(Boolean).join(' ')}>
               <button type="button" className={styles.dayHead} onClick={() => setOpen(expanded ? null : d)} aria-expanded={expanded}>
@@ -111,23 +119,44 @@ export function PlanPage() {
                 <span className={styles.dayName}>
                   {main ? l(templates[main].name) : t('plan.rest')}
                   {plan.options.length > 1 && <span className="muted"> +{plan.options.length - 1}</span>}
+                  {d in swaps && <span className={styles.moved}>{t('plan.moved')}</span>}
                 </span>
                 <span className={isDone ? styles.statusDone : 'muted'}>
                   {isDone && <Icon name="check" size={14} strokeWidth={3} />} {status}
                 </span>
               </button>
-              {expanded && main && (
+              {expanded && (main || targets.length > 0) && (
                 <div className={styles.dayBody}>
-                  <Preview template={templates[main]} levels={levels} sets={sets} />
-                  <Link to={`/workout/${main}`} className={buttonClass('secondary', true)}>
-                    <Icon name="play" size={16} /> {t('today.start')} · {l(templates[main].name)}
-                  </Link>
+                  {main && <Preview template={templates[main]} levels={levels} sets={sets} />}
+                  {main && (
+                    <Link to={`/workout/${main}`} className={buttonClass('secondary', true)}>
+                      <Icon name="play" size={16} /> {t('today.start')} · {l(templates[main].name)}
+                    </Link>
+                  )}
+                  {targets.length > 0 && (
+                    <div className={styles.swap}>
+                      <div className="label">{t('plan.swapWith')}</div>
+                      <Chips>
+                        {targets.map((o) => (
+                          <ToggleChip key={o.d} selected={false} onClick={() => swap(d, o.d)}>
+                            {weekdayName(weekday(o.d), lang)} · {o.main ? l(templates[o.main].name) : t('plan.restShort')}
+                          </ToggleChip>
+                        ))}
+                      </Chips>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )
         })}
       </div>
+
+      {weekHasSwaps(swaps, weekStart) && (
+        <Button variant="secondary" block onClick={() => void saveSetting('planSwaps', resetWeekSwaps(swaps, weekStart))}>
+          {t('plan.resetWeek')}
+        </Button>
+      )}
 
       <p className="muted">{t('plan.daily')}</p>
 

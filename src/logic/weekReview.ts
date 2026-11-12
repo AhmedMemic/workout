@@ -4,7 +4,7 @@ import { isDayComplete } from './challenge'
 import { addDays, weekday, type ISODate } from './dates'
 import { weightAverage } from './goals'
 import type { AllData } from './stats'
-import { planFor } from './schedule'
+import { planFor, type PlanSwaps } from './schedule'
 
 const STRENGTH: TemplateId[] = ['strengthA', 'strengthB', 'strengthC']
 const DESK: TemplateId[] = ['deskReset', 'deskResetShort']
@@ -43,16 +43,16 @@ function days(weekStart: ISODate): ISODate[] {
   return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 }
 
-/** Strength days (Mon/Wed/Fri) with no strength session that day or the make-up day after. */
-function missedStrengthDays(data: AllData, weekStart: ISODate): number[] {
+/** Strength days (Mon/Wed/Fri unless swapped) with no strength session that day or the make-up day after. */
+function missedStrengthDays(data: AllData, weekStart: ISODate, swaps: PlanSwaps): number[] {
   const done = new Set(data.sessions.filter((s) => s.status === 'done' && STRENGTH.includes(s.templateId)).map((s) => s.date))
   return days(weekStart)
-    .filter((d) => planFor(d).kind === 'strength' && !done.has(d) && !done.has(addDays(d, 1)))
+    .filter((d) => planFor(d, swaps).kind === 'strength' && !done.has(d) && !done.has(addDays(d, 1)))
     .map(weekday)
 }
 
 /** Summary of one Monday–Sunday week, plus one thing to focus on next week. */
-export function weekReview(data: AllData, weekStart: ISODate, stepGoal: number): WeekReview {
+export function weekReview(data: AllData, weekStart: ISODate, stepGoal: number, swaps: PlanSwaps = {}): WeekReview {
   const week = days(weekStart)
   const weekEnd = week[6]
   const inWeek = (d: ISODate) => d >= weekStart && d <= weekEnd
@@ -80,8 +80,8 @@ export function weekReview(data: AllData, weekStart: ISODate, stepGoal: number):
   const active = new Set([...thisWeek.map((s) => s.date), ...daily.filter((d) => d.deskReset).map((d) => d.date)])
 
   // the one thing to work on next week, most important first
-  const missedNow = missedStrengthDays(data, weekStart)
-  const missedBefore = missedStrengthDays(data, lastWeekStart)
+  const missedNow = missedStrengthDays(data, weekStart, swaps)
+  const missedBefore = missedStrengthDays(data, lastWeekStart, swaps)
   const repeat = missedNow.find((d) => missedBefore.includes(d))
   const tooHard = thisWeek.filter((s) => s.rating === 5).length
   let focus: Focus

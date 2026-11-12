@@ -24,7 +24,7 @@ export function Highlights({ date, settings }: { date: ISODate; settings: Settin
   const nextChallenge = useChallenge(upcoming)
   if (!data) return null
 
-  const stats = computeStats(data, date)
+  const stats = computeStats(data, date, settings.planSwaps)
   const fresh = badges.filter((b) => isEarned(b, stats) && !settings.seenBadges.includes(b.id))
   const tests = testStatus(settings.startDate, data.tests.map((r) => r.date), date)
   const showTests = tests.due && settings.retestSkipped !== tests.since
@@ -65,7 +65,7 @@ export function Highlights({ date, settings }: { date: ISODate; settings: Settin
 
       {showReview && (
         <WeekReviewCard
-          review={weekReview(data, reviewWeek, settings.stepGoal)}
+          review={weekReview(data, reviewWeek, settings.stepGoal, settings.planSwaps)}
           onDismiss={() => void saveSetting('reviewSeenWeek', reviewWeek)}
         />
       )}
@@ -94,7 +94,7 @@ export function Highlights({ date, settings }: { date: ISODate; settings: Settin
         <Card>
           <div className="label">{t(tests.number === 1 ? 'today.baselineTitle' : 'today.retestTitle')}</div>
           <div className="muted">
-            {t(planFor(date).kind === 'strength' ? 'today.retestInstead' : 'today.retestText')}
+            {t(planFor(date, settings.planSwaps).kind === 'strength' ? 'today.retestInstead' : 'today.retestText')}
           </div>
           <Link to="/progress?test=1" className={buttonClass('primary', true)}>
             {t('today.retestGo')}

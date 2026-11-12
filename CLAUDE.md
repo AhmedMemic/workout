@@ -56,7 +56,7 @@ src/
 
 ## Domain rules (from the training plan)
 
-- **Weekly schedule:** Mon A / Wed B / Fri C (strength). Tue/Thu are cardio or a walk, Sat is a long walk, Sun is rest. A missed strength day is offered as a make-up the next day.
+- **Weekly schedule:** Mon A / Wed B / Fri C (strength). Tue/Thu are cardio or a walk, Sat is a long walk, Sun is rest. A missed strength day is offered as a make-up the next day. On Plan, today and later days of a week can be swapped with each other (`planSwaps` setting, date → weekday slot); every `planFor`/`isRestDay` caller passes the swaps.
 - **Blocks:** 4 weeks, counted from the `startDate` setting. Block 1 uses 2 sets, later blocks 3. Week 4 is a deload (one set fewer).
 - **Progression:** a template slot resolves to `chain.steps[level]`. If every set hits the top of the rep range, the level goes up next session. "Too hard / Too easy" moves one step for the remaining sets and saves the change.
 - **Streak:** consecutive days with any activity (a session, a desk reset, or a full challenge day).
