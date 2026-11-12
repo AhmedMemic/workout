@@ -31,6 +31,8 @@ export interface Settings {
   standForMin: number
   sitForMin: number
   deskReminders: boolean
+  /** Month ('YYYY-MM') whose review was dismissed on Today. */
+  monthReviewSeen: string
   /** Days moved around on the Plan screen (see logic/schedule). */
   planSwaps: PlanSwaps
 }
@@ -53,6 +55,7 @@ export const defaultSettings = (): Settings => ({
   sitForMin: 45,
   deskReminders: true,
   planSwaps: {},
+  monthReviewSeen: '',
 })
 
 export async function loadSettings(): Promise<Settings> {

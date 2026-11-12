@@ -9,6 +9,8 @@ import { computeStats } from '../../logic/stats'
 import { badges, isEarned } from '../../logic/badges'
 import { addDays, dayOfMonth, daysInMonth, diffDays, monthKey, startOfWeek, weekday, type ISODate } from '../../logic/dates'
 import { weekReview } from '../../logic/weekReview'
+import { monthReview, shiftMonthKey } from '../../logic/monthReview'
+import { MonthReviewCard } from './MonthReviewCard'
 import { backUpNow, canShareBackup } from '../../db/backup'
 import { WeekReviewCard } from './WeekReviewCard'
 import { planFor } from '../../logic/schedule'
@@ -37,6 +39,11 @@ export function Highlights({ date, settings }: { date: ISODate; settings: Settin
   const hasHistory = data.sessions.some((s) => s.status === 'done') || data.daily.length >= 3
   const showReview = reviewWeek !== null && hasHistory && settings.reviewSeenWeek !== reviewWeek
 
+  // first week of a month: the month that just ended, if anything happened in it
+  const lastMonth = shiftMonthKey(monthKey(date), -1)
+  const monthSummary = dayOfMonth(date) <= 7 && settings.monthReviewSeen !== lastMonth ? monthReview(data, lastMonth, settings.startDate, settings.planSwaps) : null
+  const showMonth = !!monthSummary && (monthSummary.workouts > 0 || monthSummary.activeDays > 0)
+
   const daysSinceBackup = settings.lastBackupAt ? diffDays(settings.lastBackupAt, date) : undefined
   const showBackup =
     hasHistory && (daysSinceBackup === undefined || daysSinceBackup >= 7) && !(settings.backupSnoozedUntil > date)
@@ -61,6 +68,10 @@ export function Highlights({ date, settings }: { date: ISODate; settings: Settin
             {t('today.badgeOk')}
           </Button>
         </Card>
+      )}
+
+      {showMonth && (
+        <MonthReviewCard review={monthSummary!} onDismiss={() => void saveSetting('monthReviewSeen', lastMonth)} />
       )}
 
       {showReview && (

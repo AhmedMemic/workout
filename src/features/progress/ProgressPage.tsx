@@ -13,6 +13,8 @@ import { deleteGoal, markReachedGoals, useAllData } from '../../db/queries'
 import { addDays, formatDay, formatShort, startOfWeek, today as todayISO, weekday } from '../../logic/dates'
 import { weekReview } from '../../logic/weekReview'
 import { WeekReviewCard } from '../today/WeekReviewCard'
+import { MonthReviewCard } from '../today/MonthReviewCard'
+import { monthReview, shiftMonthKey } from '../../logic/monthReview'
 import { feelKey } from '../player/FeelCard'
 import { currentValue, goalProgress, lowerIsBetter, weightAverage } from '../../logic/goals'
 import { testStatus } from '../../logic/retest'
@@ -152,6 +154,9 @@ export function ProgressPage() {
 
   const weekStart = startOfWeek(date)
 
+  // the last full month, once there is something in it
+  const lastMonth = monthReview(data, shiftMonthKey(date.slice(0, 7), -1), settings.startDate, settings.planSwaps)
+
   // ── weight
   const weighIns = data.daily.filter((d) => d.weightKg)
   const since = addDays(date, -89)
@@ -200,6 +205,8 @@ export function ProgressPage() {
         // the week so far on Sunday, otherwise the last full week
         <WeekReviewCard review={weekReview(data, weekday(date) === 6 ? weekStart : addDays(weekStart, -7), settings.stepGoal, settings.planSwaps)} />
       )}
+
+      {(lastMonth.workouts > 0 || lastMonth.activeDays > 0) && <MonthReviewCard review={lastMonth} />}
 
       <Card>
         <div className="label">{t('progress.weight')}</div>

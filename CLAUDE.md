@@ -71,6 +71,7 @@ src/
 - **Re-tests:** baseline in the first 4-week window from `startDate`, then one per window (`logic/retest.ts`); Today shows a reminder until a test is logged or skipped.
 - **Milestones** are computed from data, never stored (`logic/badges.ts` + `logic/stats.ts`); `seenBadges` in settings only tracks which ones Today has celebrated.
 - **Week review** (`logic/weekReview.ts`) shows on Today on Sunday (this week) and Monday (last week) until dismissed, and always on Progress; it picks one focus for next week by fixed priority.
+- **Month review** (`logic/monthReview.ts`) shows on Today during the first 7 days of a month for the month that just ended (until dismissed, `monthReviewSeen`), and on Progress for the last full month.
 - **Backups:** Today nags when the last export (`lastBackupAt`) is 7+ days old; on Android the share sheet sends the file to Drive (as .txt when .json isn't shareable, so import accepts both).
 - **Standing desk:** Ahmed has a sit/stand desk at his home office. A desk session (`logic/standing.ts`, `hooks/standingDesk.ts`) switches between sitting and standing. It adds standing minutes to `daily.standMin` (on the day the stand began), and it reminds him to switch after `standForMin` / `sitForMin`. Like the quick timer, its live state is kept in localStorage, not Dexie. It doesn't count toward the streak.
 - **Food:** habits are tracked, but there is no calorie or diet tracking, because meals are shared with family.

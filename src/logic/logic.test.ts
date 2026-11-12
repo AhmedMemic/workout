@@ -12,6 +12,7 @@ import { badges, isEarned } from './badges'
 import { weekReview } from './weekReview'
 import { bestPerSession, exerciseHistory, firstDone, recordFor, sessionRecords, stallOf } from './records'
 import { balanceStatus } from './balance'
+import { monthReview, shiftMonthKey } from './monthReview'
 import { standHistory } from './standing'
 import { weekProgress } from './weekProgress'
 import { playOrder, trackName } from './music'
@@ -347,6 +348,46 @@ describe('progress views', () => {
   it('lists standing minutes per day, zero for days without a log', () => {
     const h = standHistory([{ date: MON, standMin: 40 }], addDays(MON, 1), 3)
     expect(h).toEqual([{ date: addDays(MON, -1), min: 0 }, { date: MON, min: 40 }, { date: addDays(MON, 1), min: 0 }])
+  })
+})
+
+describe('month review', () => {
+  it('sums up a month: workouts, plan, level-ups, records, challenge, weight, standing', () => {
+    const sess = (date: string, templateId: Session['templateId'], sets: Session['sets'] = []): Session => ({ date, templateId, status: 'done', startedAt: Date.parse(date), sets })
+    const data = {
+      sessions: [
+        sess('2026-09-28', 'strengthA', [{ exerciseId: 'goblet-squat', setNo: 1, reps: 12 }]),
+        sess('2026-10-05', 'strengthA', [{ exerciseId: 'goblet-squat', setNo: 1, reps: 14 }]),
+        sess('2026-10-07', 'strengthB', [{ exerciseId: 'goblet-squat-pause', setNo: 1, reps: 10 }]),
+        sess('2026-10-08', 'walk'),
+        sess('2026-10-09', 'deskReset'),
+      ],
+      daily: [
+        { date: '2026-09-30', weightKg: 90 },
+        { date: '2026-10-31', weightKg: 89, standMin: 90 },
+        { date: '2026-10-12', standMin: 30, deskReset: true },
+      ],
+      tests: [{ date: '2026-09-01', waistCm: 100 }, { date: '2026-10-20', waistCm: 98 }],
+      goals: [],
+      levels: {},
+      challenges: [{ month: '2026-10', ideaId: 'starter', tasks: starterChallenge.tasks, startDay: 21 }],
+      challengeDays: [{ month: '2026-10', date: '2026-10-21', done: ['pushups', 'plank', 'situps'] }],
+    }
+    const r = monthReview(data, '2026-10', '2026-09-01')
+    expect(r).toMatchObject({
+      workouts: 3,
+      lastMonthWorkouts: 1,
+      strength: 2,
+      strengthPlanned: 13, // Mon/Wed/Fri in October 2026
+      levelUps: ['goblet-squat-pause'],
+      records: 1,
+      challenge: { done: 1, of: 11 },
+      weightChange: -1,
+      waistChange: -2,
+      standMin: 120,
+      deskResets: 1,
+    })
+    expect(shiftMonthKey('2026-01', -1)).toBe('2025-12')
   })
 })
 
