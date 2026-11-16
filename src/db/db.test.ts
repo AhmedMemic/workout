@@ -1,8 +1,8 @@
 import 'fake-indexeddb/auto'
 import { describe, expect, it } from 'vitest'
-import { CornerDB } from './db'
+import { CornerDB, db } from './db'
 import { exportBackup, importBackup, parseBackup } from './backup'
-import { loadAllData } from './queries'
+import { loadAllData, markSessionDone, removeManualSession, updateDaily } from './queries'
 import { computeStats } from '../logic/stats'
 
 describe('backup', () => {
@@ -40,5 +40,19 @@ describe('loadAllData', () => {
     expect(data.sessions.map((s) => s.templateId)).toEqual(['strengthA', 'strengthB'])
     expect(data.goals).toHaveLength(1)
     expect(computeStats(data, '2026-10-22')).toMatchObject({ workouts: 2, deskResets: 1, bestStreak: 3 })
+  })
+})
+
+describe('marking a session done by hand', () => {
+  it('logs a walk with its minutes and takes them back when removed', async () => {
+    await updateDaily('2026-11-15', { walkMin: 20 })
+    await markSessionDone('2026-11-15', 'longWalk', 50)
+    const [s] = await db.sessions.where('date').equals('2026-11-15').toArray()
+    expect(s).toMatchObject({ templateId: 'longWalk', status: 'done', manual: true, walkMin: 50, sets: [] })
+    expect((await db.daily.get('2026-11-15'))?.walkMin).toBe(70)
+
+    await removeManualSession(s)
+    expect(await db.sessions.where('date').equals('2026-11-15').count()).toBe(0)
+    expect((await db.daily.get('2026-11-15'))?.walkMin).toBe(20)
   })
 })

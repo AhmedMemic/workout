@@ -32,6 +32,10 @@ export interface Session {
   note?: string
   /** The busy-day version of a strength session. */
   short?: boolean
+  /** Marked done by hand afterwards (e.g. a walk without the app running), so it has no sets. */
+  manual?: boolean
+  /** Walk minutes this session added to the day's `walkMin`, so removing it can take them back. */
+  walkMin?: number
 }
 
 export type SessionRating = 1 | 2 | 3 | 4 | 5

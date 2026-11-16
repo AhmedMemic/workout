@@ -45,6 +45,36 @@ export function useDoneByDate(to: ISODate, days = 2): Map<ISODate, TemplateId[]>
   }, [to, days])
 }
 
+/** Log a session done without the player (forgot to track it). Walks also add their minutes to the day. */
+export async function markSessionDone(date: ISODate, templateId: TemplateId, walkMin?: number): Promise<void> {
+  await db.transaction('rw', db.sessions, db.daily, async () => {
+    const now = Date.now()
+    await db.sessions.add({ date, templateId, status: 'done', startedAt: now, endedAt: now, sets: [], manual: true, ...(walkMin && { walkMin }) })
+    if (walkMin) {
+      const existing = (await db.daily.get(date))?.walkMin ?? 0
+      await updateDaily(date, { walkMin: existing + walkMin })
+    }
+  })
+}
+
+/** Undo `markSessionDone`. */
+export async function removeManualSession(session: Session): Promise<void> {
+  await db.transaction('rw', db.sessions, db.daily, async () => {
+    await db.sessions.delete(session.id!)
+    if (session.walkMin) {
+      const existing = (await db.daily.get(session.date))?.walkMin ?? 0
+      await updateDaily(session.date, { walkMin: Math.max(0, existing - session.walkMin) || undefined })
+    }
+  })
+}
+
+export function useManualSessions(from: ISODate, to: ISODate): Session[] | undefined {
+  return useLiveQuery(async () => {
+    const rows = await db.sessions.where('date').between(from, to, true, true).toArray()
+    return rows.filter((s) => s.manual && s.status === 'done')
+  }, [from, to])
+}
+
 export function useDoneSessions(): Session[] | undefined {
   return useLiveQuery(() => db.sessions.where('status').equals('done').toArray(), [])
 }

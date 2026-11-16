@@ -1,12 +1,13 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sheet } from '../../components/Sheet'
 import { CheckRow } from '../../components/CheckRow'
-import { Button, buttonClass } from '../../components/ui'
+import { Button, Chips, ToggleChip, buttonClass } from '../../components/ui'
 import { useT } from '../../i18n/I18nProvider'
 import { habits, swaps } from '../../data/habits'
 import type { Challenge } from '../../db/db'
-import { toggleChallengeTask, toggleFood, updateDaily } from '../../db/queries'
+import { markSessionDone, toggleChallengeTask, toggleFood, updateDaily } from '../../db/queries'
+import { templates, type TemplateId } from '../../data/templates'
 import { daysInMonth, dayOfMonth, formatDay, monthKey, type ISODate } from '../../logic/dates'
 import { targetForDay, tasksOn } from '../../logic/challenge'
 import type { TaskUnit } from '../../data/challenges'
@@ -162,6 +163,69 @@ export function ChallengeSheet({
           {t('sheet.openChallenge')}
         </Link>
       )}
+    </Sheet>
+  )
+}
+
+/** Log a walk or cardio session that was done without the app running. */
+export function MarkDoneSheet({ open, onClose, date, options }: BaseProps & { options: TemplateId[] }) {
+  const { t, l, lang } = useT()
+  const [picked, setPicked] = useState<TemplateId | null>(null)
+  const input = useRef<HTMLInputElement>(null)
+  const id = picked && options.includes(picked) ? picked : options[0]
+  if (!id) return null
+  const template = templates[id]
+  const isWalk = template.kind === 'walk'
+
+  return (
+    <Sheet open={open} onClose={onClose} title={`${t('done.title')} · ${formatDay(date, lang)}`}>
+      <form
+        className={styles.form}
+        onSubmit={async (e) => {
+          e.preventDefault()
+          let minutes: number | undefined
+          if (isWalk) {
+            const n = Math.round(Number(input.current?.value.trim().replace(',', '.')))
+            if (!Number.isFinite(n) || n <= 0) return
+            minutes = n
+          }
+          await markSessionDone(date, id, minutes)
+          onClose()
+        }}
+      >
+        {options.length > 1 && (
+          <>
+            <div className="label">{t('done.which')}</div>
+            <Chips>
+              {options.map((o) => (
+                <ToggleChip key={o} selected={o === id} onClick={() => setPicked(o)}>
+                  {l(templates[o].name)}
+                </ToggleChip>
+              ))}
+            </Chips>
+          </>
+        )}
+        {isWalk && (
+          <>
+            <div className="label">{t('done.minutes')}</div>
+            <label className={styles.numberField}>
+              <input
+                key={id}
+                ref={input}
+                type="text"
+                inputMode="numeric"
+                defaultValue={template.minutes}
+                aria-label={t('done.minutes')}
+              />
+              <span className="muted">{t('unit.minutes')}</span>
+            </label>
+          </>
+        )}
+        <div className="muted">{t('done.hint')}</div>
+        <Button type="submit" block>
+          {t('sheet.markDone')}
+        </Button>
+      </form>
     </Sheet>
   )
 }

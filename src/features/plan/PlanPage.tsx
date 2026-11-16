@@ -10,7 +10,8 @@ import { exerciseById } from '../../data/exercises'
 import { chains } from '../../data/chains'
 import { db } from '../../db/db'
 import { saveSetting, useSettings } from '../../db/settings'
-import { useDoneSessions, useLevels } from '../../db/queries'
+import { removeManualSession, useDoneSessions, useLevels } from '../../db/queries'
+import { MarkDoneSheet } from '../today/sheets'
 import { StallTip } from '../../components/StallTip'
 import { addDays, formatDay, startOfWeek, today as todayISO, weekday, weekdayName, type ISODate } from '../../logic/dates'
 import { planFor, programPosition, resetWeekSwaps, setsFor, swapDays, weekHasSwaps, type PlanSwaps } from '../../logic/schedule'
@@ -70,6 +71,7 @@ export function PlanPage() {
   const date = todayISO()
   const [weekStart, setWeekStart] = useState(startOfWeek(date))
   const [open, setOpen] = useState<string | null>(date)
+  const [marking, setMarking] = useState<ISODate | null>(null)
   // the swaps before the last change, offered back for a few seconds
   const [undo, setUndo] = useState<{ prev: PlanSwaps; text: string } | null>(null)
   useEffect(() => {
@@ -94,7 +96,10 @@ export function PlanPage() {
     const plan = planFor(d, swaps)
     const isDone = done.some((s) => s.date === d && plan.options.includes(s.templateId))
     // past and finished days stay put, so history keeps matching what was done
-    return { d, plan, main: plan.options[0], isDone, movable: d >= date && !isDone }
+    // walks and cardio done without the app can be ticked off afterwards; strength needs its sets
+    const markable = !isDone && d <= date && d >= settings.startDate ? plan.options.filter((o) => templates[o].kind !== 'strength') : []
+    const manual = done.filter((s) => s.date === d && s.manual)
+    return { d, plan, main: plan.options[0], isDone, movable: d >= date && !isDone, markable, manual }
   })
 
   const change = (next: PlanSwaps, text: string) => {
@@ -140,7 +145,7 @@ export function PlanPage() {
       </div>
 
       <div className={styles.days}>
-        {days.map(({ d, plan, main, isDone, movable }) => {
+        {days.map(({ d, plan, main, isDone, movable, markable, manual }) => {
           const missed = !isDone && plan.kind === 'strength' && d >= settings.startDate && d < date
           const status = isDone ? t('plan.done') : d === date ? t('plan.today') : missed ? t('plan.missed') : ''
           const expanded = open === d
@@ -158,7 +163,7 @@ export function PlanPage() {
                   {isDone && <Icon name="check" size={14} strokeWidth={3} />} {status}
                 </span>
               </button>
-              {expanded && (main || targets.length > 0) && (
+              {expanded && (main || targets.length > 0 || manual.length > 0) && (
                 <div className={styles.dayBody}>
                   {main && <Preview template={templates[main]} levels={levels} sets={sets} block={pos.block} />}
                   {main && (
@@ -166,6 +171,16 @@ export function PlanPage() {
                       <Icon name="play" size={16} /> {t('today.start')} · {l(templates[main].name)}
                     </Link>
                   )}
+                  {markable.length > 0 && (
+                    <Button variant="secondary" block onClick={() => setMarking(d)}>
+                      <Icon name="check" size={16} /> {t('sheet.markDone')}
+                    </Button>
+                  )}
+                  {manual.map((s) => (
+                    <Button key={s.id} variant="secondary" block onClick={() => void removeManualSession(s)}>
+                      {t('done.remove', { name: `${l(templates[s.templateId].name)}${s.walkMin ? ` · ${s.walkMin} ${t('unit.minutes')}` : ''}` })}
+                    </Button>
+                  ))}
                   {targets.length > 0 && (
                     <div className={styles.swap}>
                       <div className="label">{t('plan.swapWith')}</div>
@@ -184,6 +199,15 @@ export function PlanPage() {
           )
         })}
       </div>
+
+      {marking && (
+        <MarkDoneSheet
+          open
+          onClose={() => setMarking(null)}
+          date={marking}
+          options={days.find((x) => x.d === marking)?.markable ?? []}
+        />
+      )}
 
       {weekHasSwaps(swaps, weekStart) && (
         <Button variant="secondary" block onClick={() => change(resetWeekSwaps(swaps, weekStart), t('plan.wasReset'))}>

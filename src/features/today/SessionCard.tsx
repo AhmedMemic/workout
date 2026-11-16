@@ -6,6 +6,9 @@ import { useT } from '../../i18n/I18nProvider'
 import { templates, type TemplateId } from '../../data/templates'
 import { templateSize } from '../../data/templateInfo'
 import { OverviewSheet } from './OverviewSheet'
+import { MarkDoneSheet } from './sheets'
+import { removeManualSession, useManualSessions } from '../../db/queries'
+import { today } from '../../logic/dates'
 import styles from './Today.module.css'
 
 interface SessionCardProps {
@@ -18,6 +21,9 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
   const { t, l } = useT()
   const [picked, setPicked] = useState<TemplateId | null>(null)
   const [overview, setOverview] = useState(false)
+  const [marking, setMarking] = useState(false)
+  const date = today()
+  const manual = useManualSessions(date, date)
 
   if (options.length === 0) {
     return (
@@ -33,6 +39,9 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
   const template = templates[id]
   const size = templateSize(template)
   const isDone = done.includes(id)
+  const manualDone = manual?.find((s) => s.templateId === id)
+  // strength sessions need their sets for progression, so only walks and cardio can be ticked off
+  const markable = options.filter((o) => templates[o].kind !== 'strength' && !done.includes(o))
 
   const meta = [
     l(template.description),
@@ -75,6 +84,22 @@ export function SessionCard({ options, makeUp, done }: SessionCardProps) {
           <Icon name="clock" size={18} /> {t('today.short')}
         </Link>
       )}
+      {template.kind !== 'strength' && !isDone && (
+        <button type="button" className={buttonClass('secondary', true)} onClick={() => setMarking(true)}>
+          <Icon name="check" size={18} /> {t('sheet.markDone')}
+        </button>
+      )}
+      {manualDone && (
+        <button type="button" className={buttonClass('secondary', true)} onClick={() => void removeManualSession(manualDone)}>
+          {t('sheet.markUndone')}
+        </button>
+      )}
+      <MarkDoneSheet
+        open={marking}
+        onClose={() => setMarking(false)}
+        date={date}
+        options={[id, ...markable.filter((o) => o !== id)]}
+      />
       <OverviewSheet templateId={id} open={overview} onClose={() => setOverview(false)} />
     </Card>
   )
